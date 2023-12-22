@@ -1,0 +1,545 @@
+{%- style -%}
+  @media screen and (max-width: 768px) {
+    .background-media-text--{{ section.id }} {
+      background-image: url({{ section.settings.image | img_url: '1x1' }});
+    }
+  }
+{%- endstyle -%}
+
+<div
+  data-section-id="{{ section.id }}"
+  data-section-type="background-image"
+  class="background-media-text background-media-text--{{ section.id }} background-media-text--{{ section.settings.height }} loaded"
+  data-aos="background-media-text__animation"
+  {% if section.settings.parallax %}data-parallax="true"{% endif %}>
+
+  <div class="background-media-text__container">
+    {%- if section.settings.parallax -%}
+      <parallax-image class="parallax-container">
+        <div class="parallax-image" data-movement="15%" data-parallax-image data-angle="{{ section.settings.parallax_direction }}">
+    {%- endif -%}
+
+      {%- if section.settings.image != blank -%}
+          {% style %}
+            .background-media-text__image--{{ section.id }}{
+              object-position: {{ section.settings.focal_point }};
+            }
+          {% endstyle %}
+
+          {% liquid
+            assign has_mobile_image = false
+            if section.settings.mobile_image != blank
+              assign has_mobile_image = true
+            endif
+          %}
+
+          {% if has_mobile_image %}
+            {% assign desktop_classes = 'small--hide image-fit background-media-text__image background-media-text__image--' | append: section.id %}
+          {% else %}
+            {% assign desktop_classes = 'image-fit background-media-text__image background-media-text__image--' | append: section.id %}
+          {% endif %}
+
+          {% render 'image-element'
+          img: section.settings.image,
+            img_width: 2400,
+            classes: desktop_classes,
+            alt: section.settings.image.alt,
+            sizes: '100%'
+          %}
+
+
+          {%- if has_mobile_image -%}
+            {% assign mobile_classes = 'medium-up--hide image-fit background-media-text__image background-media-text__image--' | append: section.id %}
+
+            {% render 'image-element'
+            img: section.settings.mobile_image,
+              img_width: 2400,
+              classes: mobile_classes,
+              alt: section.settings.mobile_image.alt,
+              sizes: '100%'
+            %}
+          {%- endif -%}
+
+      {%- else -%}
+        {{ 'lifestyle-1' | placeholder_svg_tag: 'placeholder-svg' }}
+      {%- endif -%}
+
+    {%- if section.settings.parallax -%}
+        </div>
+      </parallax-image>
+    {%- endif -%}
+  </div>
+  {%- if section.settings.subtitle != blank or section.settings.title != blank or section.settings.text != blank -%}
+    <div class="background-media-text__inner">
+      <div class="background-media-text__aligner background-media-text--{{ section.settings.layout }}">
+        <div class="animation-cropper">
+          <div class="animation-contents">
+            <div class="background-media-text__text{% if section.settings.framed %} background-media-text__text--framed{% endif %} text-{{ section.settings.align_text }}">
+              {%- if section.settings.subtitle -%}
+                <div class="h5 subheading">{{ section.settings.subtitle }}</div>
+              {%- endif -%}
+              {%- if section.settings.title != blank -%}
+                <div class="h3 heading">{{ section.settings.title }}</div>
+              {%- endif -%}
+              {%- if section.settings.text != blank -%}
+                <div class="rte background-media-text__subtext body_text">{{ section.settings.text }}</div>
+              {%- endif -%}
+              <div class="hero__link">
+                {%- if section.settings.button_label != blank and section.settings.button_link != blank -%}
+                  <a href="{{ section.settings.button_link }}" class="btn btn_1{% if section.settings.button_style == 'secondary' %} btn--secondary{% endif %}">
+                    {{ section.settings.button_label }}
+                  </a>
+                {%- endif -%}
+                {%- if section.settings.button_label_2 != blank and section.settings.button_link_2 != blank -%}
+                  <a href="{{ section.settings.button_link_2 }}" class="btn btn_2{% if section.settings.button_style_2 == 'secondary' %} btn--secondary{% endif %}">
+                    {{ section.settings.button_label_2 }}
+                  </a>
+                {%- endif -%}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {%- endif -%}
+</div>
+
+<div class="background-media-text__spacer background-media-text--{{ section.settings.height }}"></div>
+
+<style>
+    #shopify-section-{{ section.id }} .background-media-text__text {
+        background-color: {{ section.settings.text_box_background_color }};
+        max-width: {{ section.settings.text_box_max_width }}px;
+        width: 100%;
+    }
+
+    #shopify-section-{{ section.id }} .animation-cropper {
+        float: unset !important;
+    }
+
+    #shopify-section-{{ section.id }} .background-media-text__aligner {
+        display: flex;
+        height: 100%;
+        align-items: center;
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    #shopify-section-{{ section.id }} .background-media-text--left {
+        justify-content: start;
+    }
+
+    #shopify-section-{{ section.id }} .background-media-text--right {
+        justify-content: end;
+    }
+
+    #shopify-section-{{ section.id }} .background-media-text--center {
+        justify-content: center;
+    }
+
+    #shopify-section-{{ section.id }} a.btn {
+        display: inline-block;
+    }
+
+    #shopify-section-{{ section.id }} .subheading {
+        color: {{ section.settings.subtitle_font_color }};
+        font-size: {{ section.settings.subtitle_font_size }}px;
+    }
+
+    #shopify-section-{{ section.id }} .heading {
+        color: {{ section.settings.title_font_color }};
+        font-size: {{ section.settings.title_font_size }}px;
+    }
+
+    #shopify-section-{{ section.id }} .body_text {
+        color: {{ section.settings.text_font_color }};
+        font-size: {{ section.settings.text_font_size }}px;
+    }
+
+    #shopify-section-{{ section.id }} .body_text small {
+        font-size: {{ section.settings.text_size_small }}px;
+    }
+
+    #shopify-section-{{ section.id }} .body_text big {
+        font-size: {{ section.settings.text_size_big }}px;
+    }
+
+    #shopify-section-{{ section.id }} .btn {
+        padding-right: 8px 11px;
+    }
+
+    #shopify-section-{{ section.id }} .btn_1 {
+        border-width: {{ section.settings.button_border_width }}px;
+        background-color: {{ section.settings.button_background_color }};
+        border-color: {{ section.settings.button_border_color }};
+        color: {{ section.settings.button_font_color }};
+        display: inline-block;
+        {% if section.settings.enable_same_button_width %}
+        width: 49%;
+        {% endif %}
+    }
+
+    #shopify-section-{{ section.id }} .btn_2 {
+        border-width: {{ section.settings.button_border_width_2 }}px;
+        background-color: {{ section.settings.button_background_color_2 }};
+        border-color: {{ section.settings.button_border_color_2 }};
+        color: {{ section.settings.button_font_color_2 }};
+        display: inline-block;
+        {% if section.settings.enable_same_button_width %}
+        width: 49%;
+        {% endif %}
+    }
+</style>
+
+{% schema %}
+{
+  "name": "t:sections.background-image-text.name",
+  "class": "index-section--flush",
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "subtitle",
+      "label": "t:sections.background-image-text.settings.subtitle.label",
+      "default": "Impressive"
+    },
+    {
+      "type": "color",
+      "id": "subtitle_font_color",
+      "label": "Subtitle Text Font Color"
+    },
+    {
+      "type": "range",
+      "id": "subtitle_font_size",
+      "label": "Subtitle Font Size",
+      "default": 18,
+      "min": 10,
+      "max": 60,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "type": "textarea",
+      "id": "title",
+      "label": "t:sections.background-image-text.settings.title.label",
+      "default": "Large image with text box"
+    },
+    {
+      "type": "color",
+      "id": "title_font_color",
+      "label": "TitleText Font Color"
+    },
+    {
+      "type": "range",
+      "id": "title_font_size",
+      "label": "Title Font Size",
+      "default": 36,
+      "min": 10,
+      "max": 80,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "type": "textarea",
+      "id": "text",
+      "label": "t:sections.background-image-text.settings.text.label",
+      "default": "<p>Pair large text with a full-width image to draw attention to an important detail of your brand or product line.</p>"
+    },
+    {
+      "type": "color",
+      "id": "text_font_color",
+      "label": "Text Font Color"
+    },
+    {
+      "type": "range",
+      "id": "text_font_size",
+      "label": "Text Font Size",
+      "default": 18,
+      "min": 10,
+      "max": 60,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "text_size_small",
+      "label": "Small title element font size",
+      "default": 12,
+      "min": 10,
+      "max": 100,
+      "unit": "px",
+      "info": "You can use this font size in the title textarea by surrounding the text you want to apply this size with the element: <small>[your text here]</small>"
+    },
+    {
+      "type": "range",
+      "id": "text_size_big",
+      "label": "Big title element font size",
+      "default": 35,
+      "min": 20,
+      "max": 100,
+      "unit": "px",
+      "info": "You can use this font size in the title textarea by surrounding the text you want to apply this size with the element: <big>[your text here]</big>"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "t:sections.background-image-text.settings.button_label.label"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "t:sections.background-image-text.settings.button_link.label"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "t:sections.text-and-image.settings.button_style.label",
+      "default": "primary",
+      "options": [
+        {
+          "value": "primary",
+          "label": "t:sections.text-and-image.settings.button_style.options.primary.label"
+        },
+        {
+          "value": "secondary",
+          "label": "t:sections.text-and-image.settings.button_style.options.secondary.label"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "button_border_width",
+      "label": "Button Border Width",
+      "default": 2,
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "type": "color",
+      "id": "button_background_color",
+      "label": "Button Background Color"
+    },
+    {
+      "type": "color",
+      "id": "button_border_color",
+      "label": "Button Border Color"
+    },
+    {
+      "type": "color",
+      "id": "button_font_color",
+      "label": "Button Font Color"
+    },
+    {
+      "type": "text",
+      "id": "button_label_2",
+      "label": "Button 2 Label"
+    },
+    {
+      "type": "url",
+      "id": "button_link_2",
+      "label": "Button 2 Link"
+    },
+    {
+      "type": "select",
+      "id": "button_style_2",
+      "label": "Button 2 Style",
+      "default": "primary",
+      "options": [
+        {
+          "value": "primary",
+          "label": "t:sections.text-and-image.settings.button_style.options.primary.label"
+        },
+        {
+          "value": "secondary",
+          "label": "t:sections.text-and-image.settings.button_style.options.secondary.label"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "button_border_width_2",
+      "label": "Button 2 Border Width",
+      "default": 2,
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "type": "color",
+      "id": "button_background_color_2",
+      "label": "Button 2 Background Color"
+    },
+    {
+      "type": "color",
+      "id": "button_border_color_2",
+      "label": "Button 2 Border Color"
+    },
+    {
+      "type": "color",
+      "id": "button_font_color_2",
+      "label": "Button 2 Font Color"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_same_button_width",
+      "label": "Enable Same Button Width",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "align_text",
+      "label": "t:sections.text-and-image.settings.align_text.label",
+      "default": "left",
+      "options": [
+        {
+          "value": "left",
+          "label": "t:sections.text-and-image.settings.align_text.options.left.label"
+        },
+        {
+          "value": "center",
+          "label": "t:sections.text-and-image.settings.align_text.options.center.label"
+        },
+        {
+          "value": "right",
+          "label": "t:sections.text-and-image.settings.align_text.options.right.label"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "text_box_max_width",
+      "label": "Text Box Max Width",
+      "default": 300,
+      "min": 250,
+      "max": 1200,
+      "step": 50,
+      "unit": "px"
+    },
+    {
+      "type": "color",
+      "id": "text_box_background_color",
+      "label": "Text Box Background Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "t:sections.background-image-text.settings.image.label"
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_image",
+      "label": "Mobile Image"
+    },
+    {
+      "type": "select",
+      "id": "focal_point",
+      "label": "t:sections.background-image-text.settings.focal_point.label",
+      "info": "t:sections.background-image-text.settings.focal_point.info",
+      "default": "center",
+      "options": [
+        {
+          "value": "20% 0",
+          "label": "t:sections.background-image-text.settings.focal_point.options.20_0.label"
+        },
+        {
+          "value": "top",
+          "label": "t:sections.background-image-text.settings.focal_point.options.top.label"
+        },
+        {
+          "value": "80% 0",
+          "label": "t:sections.background-image-text.settings.focal_point.options.80_0.label"
+        },
+        {
+          "value": "20% 50%",
+          "label": "t:sections.background-image-text.settings.focal_point.options.20_50.label"
+        },
+        {
+          "value": "center",
+          "label": "t:sections.background-image-text.settings.focal_point.options.center.label"
+        },
+        {
+          "value": "80% 50%",
+          "label": "t:sections.background-image-text.settings.focal_point.options.80_50.label"
+        },
+        {
+          "value": "20% 100%",
+          "label": "t:sections.background-image-text.settings.focal_point.options.20_100.label"
+        },
+        {
+          "value": "bottom",
+          "label": "t:sections.background-image-text.settings.focal_point.options.bottom.label"
+        },
+        {
+          "value": "80% 100%",
+          "label": "t:sections.background-image-text.settings.focal_point.options.80_100.label"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "t:sections.background-image-text.settings.layout.label",
+      "default": "left",
+      "options": [
+        {
+          "value": "left",
+          "label": "t:sections.background-image-text.settings.layout.options.left.label"
+        },
+        {
+          "value": "center",
+          "label": "Test in the middle"
+        },
+        {
+          "value": "right",
+          "label": "t:sections.background-image-text.settings.layout.options.right.label"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "height",
+      "label": "t:sections.background-image-text.settings.height.label",
+      "default": 550,
+      "min": 450,
+      "max": 750,
+      "step": 100,
+      "unit": "px"
+    },
+    {
+      "type": "checkbox",
+      "id": "framed",
+      "label": "t:sections.background-image-text.settings.framed.label",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "parallax",
+      "label": "t:sections.background-image-text.settings.parallax.label",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "parallax_direction",
+      "label": "t:sections.background-image-text.settings.parallax_direction.label",
+      "default": "top",
+      "options": [
+        {
+          "value": "top",
+          "label": "t:sections.background-image-text.settings.parallax_direction.options.top.label"
+        },
+        {
+          "value": "left",
+          "label": "t:sections.background-image-text.settings.parallax_direction.options.left.label"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.background-image-text.presets.large_image_with_text_box.name"
+    }
+  ]
+}
+{% endschema %}

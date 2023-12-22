@@ -1,0 +1,207 @@
+{%- liquid
+    assign gap = gap | default: settings.grid_gap | default: 20 
+    assign max_items = max_items | default: 6 
+    assign vertical_slider_height = vertical_slider_height | default: 300 
+    assign breakpoint_small = breakpoint_small | default: settings.breakpoint_small | default: 768 
+    assign breakpoint_medium = breakpoint_medium | default: settings.breakpoint_medium | default: 959
+    assign nav_item_color = nav_item_color | default: '#000000'
+-%}
+
+
+<style>
+embla-slider{
+    display:block;
+    overflow: hidden;
+    position: relative;
+}
+embla-nav,
+embla-track,
+embla-slide,
+embla-nav-item{
+    display:block;
+}
+embla-slide{
+    position: relative;
+}
+embla-nav-item{
+    cursor:pointer;
+    width:12px;
+    height:12px;
+    border-radius:50%;
+    border:1px solid {{nav_item_color}};
+    background-color: transparent;
+}
+embla-nav-item.in-view{
+    background-color: {{nav_item_color}};
+}
+embla-nav{
+    display: flex;
+    padding:10px;
+    gap:5px;
+    justify-content: center;
+}
+embla-nav.left{
+    justify-content: flex-start;
+}
+embla-nav:empty{
+    display:none;
+}
+embla-nav.right{
+    justify-content: flex-end;
+}
+embla-nav.overlayed{
+    position: absolute;
+    bottom:0;
+    left:0;
+    width:100%;
+}
+embla-slider[fade] embla-slides{
+    transform: none !important;
+}
+embla-slider[fade] embla-slide{
+    opacity:0;
+    pointer-events: none;
+    left: 0 !important;
+    right: 0 !important;
+}
+embla-slider[fade] embla-slide.in-view{
+    opacity:1;
+    pointer-events: initial;
+}
+embla-nav-item:only-child{
+    display: none;
+}
+embla-next,
+embla-prev{
+    display:block;
+    cursor:pointer;
+    z-index:2;
+}
+embla-next[disabled],
+embla-prev[disabled]{
+   display:none;
+}
+embla-next.cs_next,
+embla-prev.cs_prev{
+    position: absolute;
+    top:50%;
+    transform: translateY(-50%);
+    padding:20px;
+}
+embla-prev.cs_prev{
+    left:0;
+}
+embla-next.cs_next{
+    right:0;
+}
+
+embla-slides{
+    display: flex;
+    align-items: stretch;
+    position: relative;
+    will-change: transform;
+    will-change: height;
+    transition: height 0.6s;
+}
+embla-slider[auto-height] embla-slides{
+    align-items: flex-start;
+}
+embla-slider embla-track.is-draggable{
+    cursor: grab;
+}
+embla-slider embla-track.is-dragging{
+    cursor: grabbing;
+}
+embla-slider:not(.vertical) embla-slides{
+    flex-direction: row;
+}
+embla-slider.vertical embla-slides{
+    flex-direction: column;
+    height:{{vertical_slider_height}}px;
+}
+{% for i in (1..max_items) %}
+    embla-slides:not(.gap).items-{{forloop.index}} > embla-slide{
+        flex: 0 0  calc(100% / {{forloop.index}});
+    }  
+    {% assign in_view_gap = gap | times: forloop.index0 %}
+    embla-slides.gap.items-{{forloop.index}} > embla-slide{
+        flex: 0 0 calc((100% - {{in_view_gap}}px) / {{forloop.index}});
+    }  
+{% endfor %}
+embla-slider:not(.vertical) embla-slides.gap > embla-slide{
+    margin-right:{{gap}}px; 
+}
+embla-slider.vertical embla-slides.gap > embla-slide{
+    margin-bottom:{{gap}}px; 
+    width:100%;
+}
+@media (min-width:{{breakpoint_small | plus: 1}}px) and (max-width:{{breakpoint_medium}}px){
+    embla-slider.medium_horizontal embla-slides{
+        flex-direction: row;
+        height:initial
+    }
+    embla-slider.medium_vertical embla-slides{
+        flex-direction: column;
+        height:{{vertical_slider_height}}px;
+    }
+
+    {% for i in (1..max_items) %}
+        embla-slides:not(.gap).medium_items-{{forloop.index}} > embla-slide,
+        embla-slides.medium_no-gap.medium_items-{{forloop.index}} > embla-slide{
+            flex: 0 0  calc(100% / {{forloop.index}});
+        }  
+        {% assign in_view_gap = gap | times: forloop.index0 %}
+        embla-slides.gap.medium_items-{{forloop.index}} > embla-slide,
+        embla-slides.medium_gap.medium_items-{{forloop.index}} > embla-slide{
+            flex: 0 0 calc((100% - {{in_view_gap}}px) / {{forloop.index}});
+        }  
+    {% endfor %}
+
+    embla-slider.vertical:not(.medium_horizontal) embla-slides.gap:not(.medium_no-gap) > embla-slide,
+    embla-slider.vertical:not(.medium_horizontal) embla-slides.medium_gap > embla-slide {
+        margin-bottom:{{gap}}px; 
+        margin-right:0;
+    }
+    embla-slider:not(.vertical):not(.medium_vertical) embla-slides.gap:not(.medium_no-gap) > embla-slide,
+    embla-slider:not(.vertical):not(.medium_vertical) embla-slides.medium_gap > embla-slide {
+        margin-right:{{gap}}px; 
+        margin-bottom:0;
+        width:100%;
+    }
+}
+@media (max-width:{{breakpoint_small}}px){
+    embla-slider.small_horizontal embla-slides{
+        flex-direction: row;
+        height:initial
+    }
+    embla-slider.small_vertical embla-slides{
+        flex-direction: column;
+        height:{{vertical_slider_height}}px;
+    }
+
+    {% for i in (1..max_items) %}
+        embla-slides:not(.gap).small_items-{{forloop.index}} > embla-slide,
+        embla-slides:not(.small_no-gap).small_items-{{forloop.index}} > embla-slide{
+            flex: 0 0  calc(100% / {{forloop.index}});
+        }  
+        {% assign in_view_gap = gap | times: forloop.index0 %}
+        embla-slides.gap.small_items-{{forloop.index}} > embla-slide,
+        embla-slides.small_gap.small_items-{{forloop.index}} > embla-slide{
+            flex: 0 0 calc((100% - {{in_view_gap}}px) / {{forloop.index}});
+        }  
+    {% endfor %}
+
+    embla-slider.vertical:not(.small_horizontal) embla-slides.gap:not(.small_no-gap) > embla-slide,
+    embla-slider.vertical:not(.small_horizontal) embla-slides.small_gap > embla-slide {
+        margin-right:0;
+        margin-bottom:{{gap}}px; 
+    }
+    embla-slider.small_horizontal:not(.small_vertical) embla-slides.gap:not(.small_no-gap) > embla-slide,
+    embla-slider.small_horizontal:not(.small_vertical) embla-slides.small_gap > embla-slide {
+        margin-bottom:0;
+        margin-right:{{gap}}px; 
+        width:100%;
+    }
+}
+{}
+</style>

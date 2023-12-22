@@ -1,0 +1,276 @@
+<style>
+  #shopify-section-{{ section.id }} {
+    padding-top:30px;
+    padding-bottom:30px;
+    {% if section.settings.text_bg_image %}
+    background-size: cover;
+    background-image: url("{{ section.settings.text_bg_image | image_url }}");
+    {% endif %}
+    {% if section.settings.text_bg_image == blank and section.settings.background %}
+    background-color: {{ section.settings.background }};
+    {% endif %}
+  }
+
+  #shopify-section-{{ section.id }} .section-header__title {
+      color: {{ section.settings.title_color }};
+  }
+
+  #shopify-section-{{ section.id }} .collapsibles-wrapper{
+    background-color:#fff;
+  }
+
+  #shopify-section-{{ section.id }} .collapsibles-wrapper,
+  #shopify-section-{{ section.id }} .collapsible-trigger,
+  #shopify-section-{{ section.id }} .collapsible-content__inner{
+    border:none;
+  }
+
+  #shopify-section-{{ section.id }} .faq-block--tab{
+      margin:0;
+  }
+
+  #shopify-section-{{ section.id }} .faq-block--tab:not(:last-of-type){
+    padding-bottom:20px;
+  }
+
+  #shopify-section-{{ section.id }} .collapsible-trigger.is-open > .collapsible-trigger__icon > svg:first-of-type,
+  #shopify-section-{{ section.id }} .collapsible-trigger:not(.is-open) > .collapsible-trigger__icon > svg:last-of-type{
+      display:none;
+  }
+</style>
+
+{%- if section.blocks.size > 0 -%}
+  <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {% for block in section.blocks %}
+            {% case block.type %}
+            {% when 'tab' %}
+                {
+                  "@type": "Question",
+                  "name": {{ block.settings.title | json }},
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": {{ block.settings.content | json }}
+                  }
+                }{% unless forloop.last %},{% endunless %}
+            {% endcase %}
+          {% endfor %}
+        ]
+      }
+  </script>
+  <div class="page-width{% if section.settings.max_width %} page-width--narrow{% endif %}">
+
+    {%- if section.settings.title != blank -%}
+      <header class="section-header">
+        <h2 class="section-header__title">
+          {{ section.settings.title | escape }}
+        </h2>
+      </header>
+    {%- endif -%}
+
+    {%- for block in section.blocks -%}
+      {%- case block.type -%}
+        {%- when '@app' -%}
+          <div class="faq-block faq-block--tab" {{ block.shopify_attributes }}>
+            {% assign tab_id = block.id | append: section.id %}
+            {% capture tab_content %}
+              {% render block %}
+            {% endcapture %}
+            {%- render 'tab', id: tab_id, title: section.settings.review_app_title, content: tab_content -%}
+          </div>
+        {%- when 'separator' -%}
+          <div class="faq-block" {{ block.shopify_attributes }}><hr></div>
+        {%- when 'text' -%}
+          <div {{ block.shopify_attributes }} class="faq-block">
+            {{ block.settings.text }}
+          </div>
+        {%- when 'tab' -%}
+          <div class="faq-block faq-block--tab" {{ block.shopify_attributes }}>
+            {% assign tab_id = block.id | append: section.id %}
+            {% capture tab_content %}
+            <div class="tab-columns tab-columns--{{block.settings.columns}}">
+              {% assign columns = block.settings.content | split: '[next-column]' %}
+              {% for item in columns %}
+                <div class="tab-column">
+                  {{ item }}
+                </div>
+              {% endfor %}
+            </div>
+            <div class="tab-columns tab-columns--{{block.settings.columns}}">
+              {% assign columns = block.settings.content_liquid | split: '[next-column]' %}
+              {% for item in columns %}
+                <div class="tab-column">
+                  {{ item }}
+                </div>
+              {% endfor %}
+            </div>
+            {{ block.settings.page.content }}
+            {% endcapture %}
+            {%- render 'tab', id: tab_id, title: block.settings.title, content: tab_content, force_open: block.settings.display_tab_open -%}
+          </div>
+        {%- when 'contact' -%}
+          <div class="faq-block faq-block--tab" {{ block.shopify_attributes }}>
+            {% assign tab_id = block.id | append: section.id %}
+            {%- render 'tab-contact', id: tab_id, block: block -%}
+          </div>
+        {%- when 'custom' -%}
+          <div class="faq-block" {{ block.shopify_attributes }}>
+            {{ block.settings.code }}
+          </div>
+      {%- endcase -%}
+    {%- endfor -%}
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "FAQ New",
+  "class": "faq-full-width",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "t:sections.faq.settings.title.label",
+      "default": "FAQs"
+    },
+    {
+      "type": "color",
+      "id": "title_color",
+      "label": "Title Color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "background",
+      "label": "Background",
+      "default": "#DCC6C1"
+    },
+    {
+      "type": "image_picker",
+      "id": "text_bg_image",
+      "label": "Text Background Image"
+    },
+    {
+      "type": "paragraph",
+      "content": "t:sections.product-full-width.settings.content"
+    },
+    {
+      "type": "checkbox",
+      "id": "max_width",
+      "label": "t:sections.product-full-width.settings.max_width.label",
+      "info": "t:sections.product-full-width.settings.max_width.info",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "review_app_title",
+      "label": "Review App Title",
+      "default": "Reviews"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "@app"
+    },
+    {
+      "type": "tab",
+      "name": "t:sections.product-full-width.blocks.tab.name",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "t:sections.product-full-width.blocks.tab.settings.title.label",
+          "default": "Shipping information"
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "t:sections.product-full-width.blocks.tab.settings.content.label",
+          "default": "<p>Use collapsible tabs for more detailed information that will help customers make a purchasing decision.</p><p>Ex: Shipping and return policies, size guides, and other common questions.</p>",
+          "info": "Split content by inserting [next-column] as default text."
+        },
+        {
+          "type": "liquid",
+          "id": "content_liquid",
+          "label": "t:sections.product-full-width.blocks.tab.settings.content.label"
+        },
+        {
+          "type": "range",
+          "id": "columns",
+          "label": "Columns",
+          "min": 1,
+          "max": 4,
+          "step": 1,
+          "default": 2
+        },
+        {
+          "type": "page",
+          "id": "page",
+          "label": "t:sections.product-full-width.blocks.tab.settings.page.label"
+        },
+        {
+          "type": "checkbox",
+          "id": "display_tab_open",
+          "label": "Display Tab Open",
+          "default": false
+        }
+      ]
+    },
+    {
+      "type": "separator",
+      "name": "t:sections.product-full-width.blocks.separator.name"
+    },
+    {
+      "type": "contact",
+      "name": "t:sections.product-full-width.blocks.contact_form.name",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "paragraph",
+          "content": "t:sections.product-full-width.blocks.contact_form.settings.content"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "t:sections.product-full-width.blocks.contact_form.settings.title.label",
+          "default": "Ask a question"
+        },
+        {
+          "type": "checkbox",
+          "id": "phone",
+          "label": "t:sections.product-full-width.blocks.contact_form.settings.phone.label"
+        }
+      ]
+    },
+    {
+      "type": "custom",
+      "name": "t:sections.product-full-width.blocks.html.name",
+      "settings": [
+        {
+          "type": "liquid",
+          "id": "code",
+          "label": "t:sections.product-full-width.blocks.html.settings.code.label",
+          "default": "<h4>Custom code block</h4><p>Use this advanced section to add custom HTML, app scripts, or liquid.</p>",
+          "info": "t:sections.product-full-width.blocks.html.settings.code.info"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "FAQ New",
+      "blocks": [
+        {
+          "type": "tab"
+        },
+        {
+          "type": "tab"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,311 @@
+<div class="index-section">
+  <div class="page-width{% if section.settings.narrow_column %} page-width--narrow{% endif %}">
+    {%- if section.settings.title != blank -%}
+      <div class="section-header">
+        <h2 class="section-header__title">
+          {{ section.settings.title }}
+        </h2>
+        {%- if section.settings.text != blank -%}
+          <div class="rte section-header__rte">{{ section.settings.text }}</div>
+        {%- endif -%}
+      </div>
+    {% endif %}
+
+    <div class="form-vertical">
+      {%- assign form_id = 'contact-' | append: section.id -%}
+      {%- form 'contact', id: form_id -%}
+
+        <p class="text-left" style="margin-bottom:30px;">
+          <small style="font-size:13px;"><span style="color:red;">*</span> Required</small>
+        </p>
+
+        {%- if form.posted_successfully? -%}
+          <p class="note note--success">
+            {{ 'contact.form.post_success' | t }}
+          </p>
+        {%- endif -%}
+
+        {{ form.errors | default_errors }}
+
+        <div class="grid grid--small">
+          {%- if section.settings.show_name -%}
+          <div class="grid__item medium-up--one-half">
+            <label for="ContactFormName-{{ section.id }}">{{ 'contact.form.name' | t }}<span style="color:red;">*</span></label>
+            <input type="text" id="ContactFormName-{{ section.id }}" class="input-full" name="contact[name]" autocapitalize="words" value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}" required>
+          </div>
+          {%- endif -%}
+
+          {%- if section.settings.show_last_name -%}
+          <div class="grid__item medium-up--one-half">
+            <label for="ContactFormName-{{ section.id }}">{{ 'contact.form.last_name' | t }}<span style="color:red;">*</span></label>
+            <input type="text" id="ContactFormLastName-{{ section.id }}" class="input-full" name="contact[last_name]" autocapitalize="words" value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}" required>
+          </div>
+          {%- endif -%}
+
+          {%- if section.settings.show_email -%}
+          <div class="grid__item medium-up--one-half">
+            <label for="ContactFormEmail-{{ section.id }}">{{ 'contact.form.email' | t }}<span style="color:red;">*</span></label>
+            <input type="email" id="ContactFormEmail-{{ section.id }}" class="input-full" name="contact[email]" autocorrect="off" autocapitalize="off" value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}" required>
+          </div>
+          {%- endif -%}
+
+          {%- if section.settings.show_phone -%}
+          <div class="grid__item medium-up--one-half">
+            <label for="ContactFormPhone-{{ section.id }}">{{ 'contact.form.phone' | t }}</label>
+            <input type="tel" id="ContactFormPhone-{{ section.id }}" class="input-full" name="contact[phone]" pattern="[0-9\-]*" value="{% if form.phone %}{{ form.phone }}{% elsif customer %}{{ customer.phone }}{% endif %}">
+          </div>
+          {%- endif -%}
+
+          {%- if section.settings.show_order_number -%}
+          <div class="grid__item medium-up--one-half">
+            <label for="ContactFormOrderNumber-{{ section.id }}">{{ 'contact.form.order_number' | t }}</label>
+            <input type="tel" id="ContactFormPhone-{{ section.id }}" class="input-full" name="contact[order_number]" pattern="[0-9\-]*" value="{% if form.phone %}{{ form.phone }}{% elsif customer %}{{ customer.phone }}{% endif %}">
+          </div>
+          {%- endif -%}
+
+          {% for block in section.blocks %}
+            {% case block.type %}
+              {% when "input" %}
+                <div class="grid__item medium-up--one-{{ block.settings.input_width }}">
+                  <label for="ContactForm{{ block.settings.label | handle }}-{{ section.id }}">{{ block.settings.label }}{% if block.settings.required %}<span style="color:red;">*</span>{% endif %}</label>
+                  {% assign label_handle = block.settings.label | handle %}
+                  <input type="{{ block.settings.type }}" id="ContactForm{{ block.settings.label | handle }}-{{ section.id }}" class="input-full" name="contact[{{ block.settings.label | handle }}]" value="{% if form[label_handle] %}{{ form[label_handle] }}{% endif %}" placeholder="{{ block.settings.placeholder }}"{% if block.settings.required %} required{% endif %}>
+                </div>
+            {% endcase %}
+          {% endfor %}
+
+        </div>
+
+        {%- if section.settings.show_message -%}
+        <label for="ContactFormMessage-{{ section.id }}">{{ 'contact.form.message' | t }}</label>
+        <textarea rows="5" id="ContactFormMessage-{{ section.id }}" class="input-full" name="contact[body]">{% if form.body %}{{ form.body }}{% endif %}</textarea>
+        {%- endif -%}
+
+        <label for="contact-form-submit-{{ section.id }}" class="hidden-label">{{ 'contact.form.send' | t }}</label>
+        <button type="submit" id="contact-form-submit-{{ section.id }}" class="btn">
+          {{ section.settings.button_text }}
+        </button>
+
+        {% comment %}
+          Remove the following three lines of code to remove the note
+          about being protected by Google's reCAPTCHA service.
+          By removing it, the small reCAPTCHA widget will appear in the
+          bottom right corner of the page.
+        {% endcomment %}
+        {{ 'shopify.online_store.spam_detection.disclaimer_html' | t }}
+
+      {%- endform -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.contact-form.name",
+  "class": "index-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "t:sections.contact-form.settings.content"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "t:sections.contact-form.settings.title.label",
+      "default": "Contact us"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "t:sections.contact-form.settings.text.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_phone",
+      "label": "t:sections.contact-form.settings.show_phone.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_name",
+      "label": "Show Name",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_last_name",
+      "label": "Show Last Name",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_email",
+      "label": "Show Email",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_message",
+      "label": "Show Message",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_order_number",
+      "label": "Show Order Number"
+    },
+    {
+      "type": "checkbox",
+      "id": "narrow_column",
+      "label": "t:sections.contact-form.settings.narrow_column.label",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button Text",
+      "default": "Send"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "input",
+      "name": "Input",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Input Label",
+          "default": "Input Label"
+        },
+        {
+          "type": "text",
+          "id": "placeholder",
+          "label": "Placeholder Text",
+          "default": "Placeholder Text"
+        },
+        {
+          "type": "select",
+          "id": "type",
+          "label": "Input Type",
+          "default": "text",
+          "options": [
+            {
+              "value": "text",
+              "label": "Text"
+            },
+            {
+              "value": "email",
+              "label": "Email"
+            },
+            {
+              "value": "tel",
+              "label": "Telephone"
+            },
+            {
+              "value": "number",
+              "label": "Number"
+            },
+            {
+              "value": "url",
+              "label": "URL"
+            },
+            {
+              "value": "date",
+              "label": "Date"
+            }
+          ]
+        },
+        {
+          "type": "checkbox",
+          "id": "required",
+          "label": "Required",
+          "default": false
+        },
+        {
+          "type": "select",
+          "id": "input_width",
+          "label": "Input Width",
+          "default": "whole",
+          "options": [
+            {
+              "value": "whole",
+              "label": "Whole"
+            },
+            {
+              "value": "half",
+              "label": "Half"
+            },
+            {
+              "value": "third",
+              "label": "Third"
+            },
+            {
+              "value": "quarter",
+              "label": "Quarter"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "file_selector",
+      "name": "File Selector",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "File Selector Label",
+          "default": "File Selector Label"
+        },
+        {
+          "type": "text",
+          "id": "placeholder",
+          "label": "Placeholder Text",
+          "default": "Placeholder Text"
+        },
+        {
+          "type": "checkbox",
+          "id": "required",
+          "label": "Required",
+          "default": false
+        },
+        {
+          "type": "text",
+          "id": "accept_file_types",
+          "label": "Accepted File Types",
+          "default": "jpg, gif, png, pdf"
+        },
+        {
+          "type": "select",
+          "id": "input_width",
+          "label": "Input Width",
+          "default": "whole",
+          "options": [
+            {
+              "value": "whole",
+              "label": "Whole"
+            },
+            {
+              "value": "half",
+              "label": "Half"
+            },
+            {
+              "value": "third",
+              "label": "Third"
+            },
+            {
+              "value": "quarter",
+              "label": "Quarter"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.contact-form.presets.contact_form.name"
+    }
+  ]
+}
+{% endschema %}

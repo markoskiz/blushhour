@@ -1,0 +1,974 @@
+{%- comment -%}
+  How to use:
+
+  Create custom app with theme_write access.
+  Install the app and enter credentials in the section settings.
+  Create an asset named font-styles.css and embed it in the head of the theme.liquid
+
+  When saving the section in theme editor also hit the write to asset button.
+{%- endcomment -%}
+
+{% if section.settings.inline_styles or request.design_mode %}
+  {% capture global_styles %}
+    ol > li, ul > li, input, label, output, textarea, button, clever-select *
+  {% endcapture %}
+
+  {% capture global_font_styles %}
+    h1,h2,h3,h4,h5,h6,p{ margin: 0; } span, a{ font-family: inherit; font-weight: inherit; text-transform:inherit;
+    text-decoration:inherit; font-size:inherit; font-style:inherit; } a{ color:
+    {{ section.settings.link_color | default: '#000000' }}; } p > a { text-decoration: underline; }
+
+    .btn, .shopify-payment-button__button { display:block; position: relative; padding: 8px 16px; margin: 0;
+    border-radius: 0px; text-align: center; cursor: pointer; }
+
+    .btn.btn--full { width: 100%; }
+
+    {% for block in section.blocks %}
+      {% case block.type %}
+        {% when 'font-face' %}
+          {% if block.settings.font_face == 'custom' %}
+            @font-face { font-family: "{{ block.settings.family }}"; src: url("{{ block.settings.woff2 }}")
+            format("woff2"), url("{{ block.settings.woff }}") format("woff"); font-style: {{ block.settings.style }};
+            font-display: swap; font-weight: {{ block.settings.weight }}; }
+          {% else %}
+            {{ block.settings.shopify_font | font_face: font_display: 'swap' }}
+          {% endif %}
+        {% when 'font-style' %}
+          {% assign classes = block.settings.classes | split: ',' %}
+          {% assign tags = block.settings.tags | split: ',' %}
+          {% if block.settings.default_style %}
+            {% assign tags = tags | join: ',' | append: ',' | append: global_styles | split: ',' %}
+          {% endif %}
+          {% if classes != blank or tags != blank %}
+            {% capture selector -%}
+              {%- for class in classes -%}
+                .{{ class | strip -}}
+                {%- unless forloop.last %},{% endunless -%}
+              {%- endfor -%}
+              {%- if tags != blank and classes != blank %},{% endif -%}
+              {%- for tag in tags -%}
+                {{- tag | strip -}}
+                {%- unless forloop.last %},{% endunless -%}
+              {%- endfor -%}
+            {%- endcapture %}
+            {{ selector }}{
+            {% if block.settings.family != blank -%}
+              font-family:'{{ block.settings.family }}', {{ block.settings.family }};
+            {%- endif %}
+            font-style:{{ block.settings.style }};
+            {% if block.settings.font_size != blank and block.settings.font_size != 0 -%}
+              font-size: {{ block.settings.font_size -}}
+              {{- section.settings.font_size_unit }};
+            {%- endif %}
+            {% if block.settings.line_height != blank and block.settings.line_height != 0 -%}
+              line-height: {{ block.settings.line_height -}}
+              {{- section.settings.line_height_unit }};
+            {%- else -%}
+              line-height: normal;
+            {%- endif %}
+            font-weight:{{ block.settings.weight }}; }
+            {% if block.settings.font_size_mobile != blank or block.settings.line_height_mobile != blank %}
+              @media screen and (max-width:{{ settings.breakpoint_small }}px){ {{ selector }}{
+              {% if block.settings.font_size_mobile != blank and block.settings.font_size_mobile != 0 -%}
+                font-size: {{ block.settings.font_size_mobile -}}
+                {{- section.settings.font_size_unit }};
+              {%- endif %}
+              {% if block.settings.line_height_mobile != blank and block.settings.line_height_mobile != 0 -%}
+                line-height: {{ block.settings.line_height_mobile -}}
+                {{- section.settings.line_height_unit }};
+              {%- endif %}
+              } }
+            {% endif %}
+          {% endif %}
+        {% when 'button-style' %}
+          {% assign classes = block.settings.classes | split: ',' %}
+          {% if classes != blank or tags != blank %}
+            {% capture selector -%}
+              {%- for class in classes -%}
+                .btn.{{ class -}}
+                {%- unless forloop.last %},{% endunless -%}
+              {%- endfor -%}
+              {%- if block.settings.shopify_buttons %}, .shopify-payment-button__button {% endif %}
+            {% endcapture %}
+            {{ selector }}{
+            {% if block.settings.family != blank -%}
+              font-family:'{{ block.settings.family }}', {{ block.settings.family }};
+            {%- endif %}
+            font-style: {{ block.settings.style }};
+            {% if block.settings.font_size != blank -%}
+              font-size: {{ block.settings.font_size -}}
+              {{- section.settings.font_size_unit }};
+            {%- endif %}
+            {% if block.settings.line_height != blank -%}
+              line-height: {{ block.settings.line_height -}}
+              {{- section.settings.line_height_unit }};
+            {%- else -%}
+              line-height: normal;
+            {%- endif %}
+            font-weight:{{ block.settings.weight }};
+            {{ block.settings.custom_css }}
+            }
+            {% if block.settings.font_size_mobile != blank or block.settings.line_height_mobile != blank %}
+              @media screen and (max-width:{{ settings.breakpoint_small }}px){ {{ selector }}{
+              {% if block.settings.font_size_mobile != blank -%}
+                font-size: {{ block.settings.font_size_mobile -}}
+                {{- section.settings.font_size_unit }};
+              {%- endif %}
+              {% if block.settings.line_height_mobile != blank -%}
+                line-height: {{ block.settings.line_height_mobile -}}
+                {{- section.settings.line_height_unit }};
+              {%- endif %}
+              } }
+            {% endif %}
+            {{ selector | split: ',' | join: '::before,' | append: '::before' }}{
+            {{ block.settings.before }}
+            }
+            {{ selector | split: ',' | join: '::after,' | append: '::after' }}{
+            {{ block.settings.after }}
+            }
+            {{ selector | split: ',' | join: ':hover,' | append: ':hover' }}{
+            {{ block.settings.custom_css_hover }}
+            }
+            {{ selector | split: ',' | join: ':hover::before,' | append: ':hover::before' }}{
+            {{ block.settings.before_hover }}
+            }
+            {{ selector | split: ',' | join: ':hover::after,' | append: ':hover::after' }}{
+            {{ block.settings.after_disabled }}
+            }
+            {{ selector | split: ',' | join: '[disabled],' | append: '[disabled]' }}{
+            {{ block.settings.custom_css_disabled }}
+            }
+            {{ selector | split: ',' | join: '[disabled]::before,' | append: '[disabled]::before' }}{
+            {{ block.settings.before_disabled }}
+            }
+            {{ selector | split: ',' | join: '[disabled]::after,' | append: '[disabled]::after' }}{
+            {{ block.settings.after_disabled }}
+            }
+            {{ selector | split: ',' | join: '[loading],' | append: '[loading]' }}{
+            {{ block.settings.custom_css_loading }}
+            }
+            {{ selector | split: ',' | join: '[loading]::before,' | append: '[loading]::before' }}{
+            {{ block.settings.before_loading }}
+            }
+            {{ selector | split: ',' | join: '[loading]::after,' | append: '[loading]::after' }}{
+            {{ block.settings.after_loading }}
+            }
+          {% endif %}
+      {% endcase %}
+    {% endfor %}
+    {{ section.settings.custom_css }}
+  {% endcapture %}
+{% endif %}
+{% if request.design_mode %}
+  <style>
+    #shopify-section-{{section.id}}{
+        position:fixed;
+        width:90%;
+        height:90%;
+        left:50%;
+        top:50%;
+        transform:translate(-50%,-50%);
+        background-color:#fff;
+        padding:20px 60px;
+        z-index:1000;
+        box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+        display:none;
+        flex-direction:column;
+    }
+    .font-styles-body{
+        overflow:auto;
+    }
+    .font-styles-header{
+        display: flex;
+        justify-content: space-between;
+        padding-bottom:20px;
+    }
+    .font-style-wrapper > *:not(.font-styles-label){
+        background-color: #0001;
+    }
+    .font-styles-heading,
+    .font-styles-label{
+        font-family:-apple-system, BlinkMacSystemFont, 'San Francisco', 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+    .font-styles-label{
+        font-size: 16px;
+        padding-bottom:5px;
+    }
+    .font-styles-heading{
+        font-size:24px;
+    }
+    .button-styles-preview{
+        padding-top:20px;
+        display:flex;
+        gap:20px;
+        flex-wrap: wrap;
+    }
+    .font-style-wrapper{
+        padding: 10px 0;
+    }
+    .font-styles-button{
+        border: 1px solid rgba(0, 128, 96, 1);
+        border-radius: 3px;
+        padding:7px 16px;
+        font-family:-apple-system, BlinkMacSystemFont, 'San Francisco', 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        line-height: 18px;
+        font-size: 16px;
+        background-color: rgba(0, 128, 96, 1);
+        color: white;
+    }
+    .font-styles-button.loading{
+        position: relative;
+        color: rgba(0, 128, 96, 1);
+    }
+    .font-styles-button.loading::after{
+        content:'';
+        display:block;
+        position: absolute;
+        top:50%;
+        left:50%;
+        transform: translate(-50%,-50%);
+        width:18px;
+        height:18px;
+        border-radius:50%;
+        border: 2px solid transparent;
+        border-bottom: 2px solid white;
+        animation: rotate 1.2s linear infinite;
+    }
+    .font-styles-close{
+        width: 40px;
+        height: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: none;
+        background: none;
+    }
+    .font-styles-actions{
+        display: flex;
+        justify-content: flex-end;
+        padding-bottom:20px;
+    }
+    @keyframes rotate {
+        0% {
+            transform: translate(-50%,-50%) rotate(0deg);
+        }
+        100% {
+            transform: translate(-50%,-50%) rotate(360deg);
+        }
+    }
+  </style>
+
+  {% assign api_key = section.settings.api_key %}
+  {% assign password = section.settings.password %}
+
+  <div class="font-styles-actions">
+    <button font-styles-close class="font-styles-close">
+      <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 20 20">
+        <path d="M11.414 10l6.293-6.293a1 1 0 10-1.414-1.414L10 8.586 3.707 2.293a1 1 0 00-1.414 1.414L8.586 10l-6.293 6.293a1 1 0 101.414 1.414L10 11.414l6.293 6.293A.998.998 0 0018 17a.999.999 0 00-.293-.707L11.414 10z"></path>
+      </svg>
+    </button>
+  </div>
+  <div class="font-styles-header">
+    <p class="font-styles-heading">Font & Button Styles</p>
+    <button write-font-styles class="font-styles-button">Write to asset</button>
+  </div>
+  <div class="font-styles-body">
+    <p class="font-styles-label">The gray area indicates the line-height.</p>
+    <div class="font-styles-preview">
+      {% assign font_styles = section.blocks | where: 'type', 'font-style' %}
+      {% for font_style in font_styles %}
+        <div class="font-style-wrapper">
+          {% assign class = font_style.settings.classes | split: ',' | first %}
+          {% assign tag = font_style.settings.tags | split: ',' | first %}
+          {% assign classes = font_style.settings.classes | split: ',' | join: ', .' | prepend: '.' %}
+          {% assign tags = font_style.settings.tags | split: ',' | join: ', ' %}
+          <p class="font-styles-label">
+            {{ font_style.settings.title }} ({{ classes -}}
+            {%- if tags != blank and classes != blank %},{% endif -%}
+            {{- tags }})
+          </p>
+          <{{ tag | default: 'p' }} class="{{class}}"
+            >The quick brown fox jumps over the lazy dog</{{ tag | default: 'p' }}
+          >
+        </div>
+      {% endfor %}
+    </div>
+    {% assign button_styles = section.blocks | where: 'type', 'button-style' %}
+    <div class="button-styles-preview">
+      {% for button_style in button_styles %}
+        {% assign classes = button_style.settings.classes | split: ',' %}
+        {% for class in classes %}
+          <button class="btn {{class}}">{{ class }}</button>
+        {% endfor %}
+      {% endfor %}
+    </div>
+    <div class="button-styles-preview">
+      {% for button_style in button_styles %}
+        {% assign classes = button_style.settings.classes | split: ',' %}
+        {% for class in classes %}
+          <button disabled class="btn {{class}}">{{ class }}</button>
+        {% endfor %}
+      {% endfor %}
+    </div>
+    <div class="button-styles-preview">
+      {% for button_style in button_styles %}
+        {% assign classes = button_style.settings.classes | split: ',' %}
+        {% for class in classes %}
+          <button loading class="btn {{class}}">{{ class }}</button>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <script>
+    function minifyCSS(css) {
+      return css
+        .split('\n')
+        .map((l) => l.trim())
+        .join('');
+    }
+    function writeToAsset() {
+      if ('{{api_key}}' == '' || '{{password}}' == '') {
+        window.alert('Missing credentials.');
+        return;
+      }
+      document.querySelector('[write-font-styles]').classList.add('loading');
+      let headers = new Headers();
+      headers.set('Content-Type', 'application/json');
+      headers.set('Authorization', 'Basic ' + btoa('{{api_key}}:{{password}}'));
+      fetch('https://{{ request.host }}/admin/api/2021-10/themes/{{theme.id}}/assets.json', {
+        method: 'PUT',
+        headers: headers,
+        credentials: 'omit',
+        body: JSON.stringify({
+          asset: {
+            key: 'assets/font-styles.css',
+            value: minifyCSS(`{{global_font_styles}}`),
+          },
+        }),
+      })
+        .then((response) => {
+          response.json();
+        })
+        .then((data) => {
+          document.querySelector('[write-font-styles]').classList.remove('loading');
+          window.alert('Success');
+        })
+        .catch((error) => {
+          document.querySelector('[write-font-styles]').classList.remove('loading');
+          window.alert('There has been an error! Check the console.');
+          console.error('Error:', error);
+        });
+    }
+    document.querySelector('[write-font-styles]').addEventListener('click', writeToAsset);
+
+    function openFontStyles(e) {
+      if (e.detail.sectionId == '{{section.id}}') {
+        document.querySelector('#shopify-section-{{section.id}}').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.querySelector('#shopify-section-{{section.id}}').style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    }
+    function closeFontStyles() {
+      document.querySelector('#shopify-section-{{section.id}}').style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    document.querySelector('[font-styles-close]').addEventListener('click', closeFontStyles);
+
+    window.addEventListener('shopify:section:select', (e) => {
+      openFontStyles(e);
+    });
+    window.addEventListener('shopify:section:load', (e) => {
+      openFontStyles(e);
+    });
+  </script>
+{% endif %}
+
+{% if section.settings.inline_styles or request.design_mode %}
+  <style>
+    {{global_font_styles}}
+  </style>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Font & Button Styles",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Version: 2.0.0"
+    },
+    {
+      "type": "header",
+      "content": "Usage",
+      "info": "Use this section to define font faces and assign different font and button styles."
+    },
+    {
+      "type": "header",
+      "content": "Credentials",
+      "info": "Custom App credentials to write dont styles to font-styles.css asset."
+    },
+    {
+      "type": "text",
+      "id": "api_key",
+      "label": "API Key"
+    },
+    {
+      "type": "text",
+      "id": "password",
+      "label": "Password"
+    },
+    {
+      "type": "header",
+      "content": "Units"
+    },
+    {
+      "type": "radio",
+      "id": "font_size_unit",
+      "label": "Font Size Unit",
+      "options": [
+        {
+          "value": "px",
+          "label": "px"
+        },
+        {
+          "value": "%",
+          "label": "%"
+        }
+      ]
+    },
+    {
+      "type": "radio",
+      "id": "line_height_unit",
+      "label": "Line Height Unit",
+      "options": [
+        {
+          "value": "px",
+          "label": "px"
+        },
+        {
+          "value": "%",
+          "label": "%"
+        }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "Advanced"
+    },
+    {
+      "type": "checkbox",
+      "id": "inline_styles",
+      "label": "Inline styles",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Settings"
+    },
+    {
+      "type": "color",
+      "id": "link_color",
+      "label": "Link color"
+    },
+    {
+      "type": "liquid",
+      "id": "custom_css",
+      "label": "Custom CSS",
+      "info": "Enter any font & button related custom styles."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "font-face",
+      "name": "Font face",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Show as",
+          "info": "Only used in Theme Editor."
+        },
+        {
+          "type": "radio",
+          "id": "font_face",
+          "label": "Font face",
+          "options": [
+            {
+              "value": "shopify",
+              "label": "Shopify"
+            },
+            {
+              "value": "custom",
+              "label": "Custom"
+            }
+          ]
+        },
+        {
+          "type": "header",
+          "content": "Shopify"
+        },
+        {
+          "type": "font_picker",
+          "id": "shopify_font",
+          "label": "Font",
+          "default": "work_sans_n6"
+        },
+        {
+          "type": "header",
+          "content": "Custom"
+        },
+        {
+          "type": "text",
+          "id": "family",
+          "label": "Font family"
+        },
+        {
+          "type": "url",
+          "id": "woff",
+          "label": ".woff"
+        },
+        {
+          "type": "url",
+          "id": "woff2",
+          "label": ".woff2"
+        },
+        {
+          "type": "select",
+          "id": "weight",
+          "label": "Weight",
+          "default": "400",
+          "options": [
+            {
+              "value": "100",
+              "label": "Thin"
+            },
+            {
+              "value": "200",
+              "label": "Extra Light"
+            },
+            {
+              "value": "300",
+              "label": "Light"
+            },
+            {
+              "value": "350",
+              "label": "Book"
+            },
+            {
+              "value": "400",
+              "label": "Normal (Regular)"
+            },
+            {
+              "value": "500",
+              "label": "Medium"
+            },
+            {
+              "value": "600",
+              "label": "Semi Bold"
+            },
+            {
+              "value": "700",
+              "label": "Bold"
+            },
+            {
+              "value": "800",
+              "label": "Extra Bold"
+            },
+            {
+              "value": "900",
+              "label": "Black"
+            },
+            {
+              "value": "950",
+              "label": "Extra Black"
+            }
+          ]
+        },
+        {
+          "type": "select",
+          "id": "style",
+          "label": "Font style",
+          "options": [
+            {
+              "value": "normal",
+              "label": "normal"
+            },
+            {
+              "value": "italic",
+              "label": "italic"
+            },
+            {
+              "value": "oblique",
+              "label": "oblique"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "font-style",
+      "name": "Font style",
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "default_style",
+          "label": "Default style",
+          "default": false,
+          "info": "Use this style for all other elements."
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Show as",
+          "info": "Only used in Theme Editor."
+        },
+        {
+          "type": "text",
+          "id": "classes",
+          "label": "Classes"
+        },
+        {
+          "type": "text",
+          "id": "tags",
+          "label": "Tags"
+        },
+        {
+          "type": "text",
+          "id": "family",
+          "label": "Family"
+        },
+        {
+          "type": "select",
+          "id": "fallback",
+          "label": "Fallback",
+          "default": "sans-serif",
+          "options": [
+            {
+              "value": "serif",
+              "label": "Serif"
+            },
+            {
+              "value": "sans-serif",
+              "label": "Sans-serif"
+            }
+          ]
+        },
+        {
+          "type": "select",
+          "id": "weight",
+          "label": "Weight",
+          "default": "400",
+          "options": [
+            {
+              "value": "100",
+              "label": "Thin"
+            },
+            {
+              "value": "200",
+              "label": "Extra Light"
+            },
+            {
+              "value": "300",
+              "label": "Light"
+            },
+            {
+              "value": "350",
+              "label": "Book"
+            },
+            {
+              "value": "400",
+              "label": "Normal (Regular)"
+            },
+            {
+              "value": "500",
+              "label": "Medium"
+            },
+            {
+              "value": "600",
+              "label": "Semi Bold"
+            },
+            {
+              "value": "700",
+              "label": "Bold"
+            },
+            {
+              "value": "800",
+              "label": "Extra Bold"
+            },
+            {
+              "value": "900",
+              "label": "Black"
+            },
+            {
+              "value": "950",
+              "label": "Extra Black"
+            }
+          ]
+        },
+        {
+          "type": "select",
+          "id": "style",
+          "label": "Font style",
+          "options": [
+            {
+              "value": "normal",
+              "label": "normal"
+            },
+            {
+              "value": "italic",
+              "label": "italic"
+            },
+            {
+              "value": "oblique",
+              "label": "oblique"
+            }
+          ]
+        },
+        {
+          "type": "number",
+          "id": "font_size",
+          "label": "Font Size"
+        },
+        {
+          "type": "number",
+          "id": "font_size_mobile",
+          "label": "Font Size (mobile)"
+        },
+        {
+          "type": "number",
+          "id": "line_height",
+          "label": "Line Height"
+        },
+        {
+          "type": "number",
+          "id": "line_height_mobile",
+          "label": "Line Height (mobile)"
+        }
+      ]
+    },
+    {
+      "type": "button-style",
+      "name": "Button style",
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "shopify_buttons",
+          "label": "Enable for Shopify buttons",
+          "default": false
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Show as",
+          "info": "Only used in Theme Editor."
+        },
+        {
+          "type": "text",
+          "id": "classes",
+          "label": "Classes",
+          "info": "To access a button class add the base class \".btn\" plus the the class defined above. Keep naming to \".btn--somename\"."
+        },
+        {
+          "type": "text",
+          "id": "family",
+          "label": "Family"
+        },
+        {
+          "type": "select",
+          "id": "fallback",
+          "label": "Fallback",
+          "default": "sans-serif",
+          "options": [
+            {
+              "value": "serif",
+              "label": "Serif"
+            },
+            {
+              "value": "sans-serif",
+              "label": "Sans-serif"
+            }
+          ]
+        },
+        {
+          "type": "select",
+          "id": "weight",
+          "label": "Weight",
+          "default": "400",
+          "options": [
+            {
+              "value": "100",
+              "label": "Thin"
+            },
+            {
+              "value": "200",
+              "label": "Extra Light"
+            },
+            {
+              "value": "300",
+              "label": "Light"
+            },
+            {
+              "value": "350",
+              "label": "Book"
+            },
+            {
+              "value": "400",
+              "label": "Normal (Regular)"
+            },
+            {
+              "value": "500",
+              "label": "Medium"
+            },
+            {
+              "value": "600",
+              "label": "Semi Bold"
+            },
+            {
+              "value": "700",
+              "label": "Bold"
+            },
+            {
+              "value": "800",
+              "label": "Extra Bold"
+            },
+            {
+              "value": "900",
+              "label": "Black"
+            },
+            {
+              "value": "950",
+              "label": "Extra Black"
+            }
+          ]
+        },
+        {
+          "type": "select",
+          "id": "style",
+          "label": "Font style",
+          "options": [
+            {
+              "value": "normal",
+              "label": "normal"
+            },
+            {
+              "value": "italic",
+              "label": "italic"
+            },
+            {
+              "value": "oblique",
+              "label": "oblique"
+            }
+          ]
+        },
+        {
+          "type": "number",
+          "id": "font_size",
+          "label": "Font Size"
+        },
+        {
+          "type": "number",
+          "id": "font_size_mobile",
+          "label": "Font Size (mobile)"
+        },
+        {
+          "type": "number",
+          "id": "line_height",
+          "label": "Line Height"
+        },
+        {
+          "type": "number",
+          "id": "line_height_mobile",
+          "label": "Line Height (mobile)"
+        },
+        {
+          "type": "liquid",
+          "id": "custom_css",
+          "label": "Custom CSS"
+        },
+        {
+          "type": "liquid",
+          "id": "before",
+          "label": "::before"
+        },
+        {
+          "type": "liquid",
+          "id": "after",
+          "label": "::after"
+        },
+        {
+          "type": "header",
+          "content": "Hover"
+        },
+        {
+          "type": "liquid",
+          "id": "custom_css_hover",
+          "label": "Custom CSS"
+        },
+        {
+          "type": "liquid",
+          "id": "before_hover",
+          "label": "::before"
+        },
+        {
+          "type": "liquid",
+          "id": "after_hover",
+          "label": "::after"
+        },
+        {
+          "type": "header",
+          "content": "Disabled"
+        },
+        {
+          "type": "liquid",
+          "id": "custom_css_disabled",
+          "label": "Custom CSS"
+        },
+        {
+          "type": "liquid",
+          "id": "before_disabled",
+          "label": "::before"
+        },
+        {
+          "type": "liquid",
+          "id": "after_disabled",
+          "label": "::after"
+        },
+        {
+          "type": "header",
+          "content": "Loading"
+        },
+        {
+          "type": "liquid",
+          "id": "custom_css_loading",
+          "label": "Custom CSS"
+        },
+        {
+          "type": "liquid",
+          "id": "before_loading",
+          "label": "::before"
+        },
+        {
+          "type": "liquid",
+          "id": "after_loading",
+          "label": "::after"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+
+{%- comment -%}
+  ,
+  {
+      "type": "checkbox",
+      "id": "force",
+      "label": "Force overwrite",
+      "info":"Forcefully overwrite existing styles.",
+      "default": false
+  }
+{%- endcomment -%}

@@ -1,0 +1,384 @@
+{%- liquid
+  assign breakpoint_small = breakpoint_small | default: settings.breakpoint_small | default: 768
+  assign breakpoint_medium = breakpoint_medium | default: settings.breakpoint_medium | default: 990
+-%}
+
+<div id="slider_nav_item_template">
+  <embla-nav-item class="slider_nav_item"></embla-nav-item>
+</div>
+
+<script src="{{ 'embla-carousel.umd.js' | asset_url }}"></script>
+
+<script>
+  customElements.define('embla-prev', class extends HTMLElement {});
+  customElements.define('embla-next', class extends HTMLElement {});
+  customElements.define('embla-nav', class extends HTMLElement {});
+  customElements.define('embla-nav-item', class extends HTMLElement {});
+  customElements.define('embla-track', class extends HTMLElement {});
+  customElements.define('embla-slides', class extends HTMLElement {});
+  customElements.define('embla-slide', class extends HTMLElement {});
+
+  class CleverSlider extends HTMLElement {
+    static breakpoints = {
+      medium: Number('{{breakpoint_medium}}'),
+      small: Number('{{breakpoint_small}}'),
+    };
+
+    constructor() {
+      super();
+    }
+    connectedCallback() {
+      this.init();
+    }
+
+    init() {
+      const that = this;
+      that.track = that.querySelector('embla-track');
+      that.slides = that.track.querySelectorAll('embla-slide');
+      that.slides_wrapper = that.track.querySelector('embla-slides');
+      //Nav
+      that.nav =
+        that.querySelector('embla-nav:not([for])') || document.querySelector('embla-nav[for="' + that.id + '"]') || null;
+      //Controls
+      that.controls = {
+        prev:
+          that.querySelector('embla-prev:not([for])') || document.querySelector('embla-prev[for="' + that.id + '"]') || null,
+        next:
+          that.querySelector('embla-next:not([for])') || document.querySelector('embla-next[for="' + that.id + '"]') || null,
+      };
+      //Is thumbnail for
+      that.for = document.querySelector('#' + that.getAttribute('for')) || null;
+      //options
+      that.options_desktop = that.getOptions('options-large') || {};
+      that.options_tablet = that.getOptions('options-medium') || that.options_desktop;
+      that.options_mobile = that.getOptions('options-small') || that.options_desktop;
+      //Auto height
+      that.auto_height = that.hasAttribute('auto-height');
+      //Fade
+      that.fade_enabled = that.hasAttribute('fade') || null;
+      that.fade_speed = that.getAttribute('fade') || 300;
+      //autoplay
+      that.autoplay_enabled = that.hasAttribute('autoplay');
+      that.autoplay_interval = Number(that.getAttribute('autoplay')) || 3000;
+      that.pause_autoplay_on_hover = that.hasAttribute('pause-on-hover');
+      //plugins
+      that.plugins = new Array();
+
+      that.createSlider();
+    }
+    getOptions(attribute) {
+      const that = this;
+      let options = this.getAttribute(attribute);
+      if (options != null && options.trim().startsWith('{')) {
+        return that.getOptionsJson(options);
+      } else if (options != null) {
+        return that.getOptionsSimple(options);
+      } else {
+        return undefined;
+      }
+    }
+
+    getOptionsJson(options) {
+      return JSON.parse(options.replaceAll("'", '"'));
+    }
+
+    getOptionsSimple(options) {
+      let json_string = '';
+      options.split(',').forEach((option) => {
+        let option_name = option.split(':')[0].trim();
+        let option_value = option.split(':')[1].trim();
+        option_name = '"' + option_name + '"';
+        if (!isNaN(option_value)) {
+          option_value = Number(option_value);
+        } else if (option_value == 'false' || option_value == 'true') {
+        } else {
+          option_value = '"' + option_value + '"';
+        }
+        json_string += ',' + option_name + ':' + option_value;
+      });
+      json_string = '{' + json_string.substring(1) + '}';
+      return JSON.parse(json_string);
+    }
+
+    createSlider() {
+      const that = this;
+      //Autoplay plugin
+      if (that.autoplay_enabled) {
+        that.autoPlayPlugin = EmblaCarouselAutoplay({
+          delay: that.autoplay_interval,
+          stopOnMouseEnter: that.pause_autoplay_on_hover,
+          stopOnLastSnap: false,
+          stopOnInteraction: true,
+          playOnInit: false,
+        });
+        that.plugins.push(that.autoPlayPlugin);
+      }
+      //Auto height plugin
+      if (that.auto_height) {
+        that.autoHeightPlugin = EmblaCarouselAutoHeight({
+          destroyHeight: 'auto',
+        });
+        that.plugins.push(that.autoHeightPlugin);
+      }
+      //Wheel gestures plugin
+      that.wheelGesturesPlugin = EmblaCarouselWheelGestures({
+        forceWheelAxis: 'x',
+        wheelDraggingClass: 'is-wheel-dragging',
+      });
+      that.plugins.push(that.wheelGesturesPlugin);
+
+      //Class names
+      that.classNamesPlugin = EmblaCarouselClassNames({
+        selected: 'in-view',
+        draggable: 'is-draggable',
+        dragging: 'is-dragging',
+      });
+      that.plugins.push(that.classNamesPlugin);
+
+      if (window.innerWidth > CleverSlider.breakpoints.medium) {
+        that.embla = EmblaCarousel(that.track, that.options_desktop, that.plugins);
+      } else if (
+        window.innerWidth <= CleverSlider.breakpoints.medium &&
+        window.innerWidth > CleverSlider.breakpoints.small
+      ) {
+        that.embla = EmblaCarousel(that.track, that.options_tablet, that.plugins);
+      } else if (window.innerWidth <= CleverSlider.breakpoints.small) {
+        that.embla = EmblaCarousel(that.track, that.options_mobile, that.plugins);
+      }
+
+      //Nav
+      if (!!that.nav) {
+        that.nav_array = that.generateDotBtns();
+        that.setupDotBtns();
+      }
+      // Prev / Next
+      if (!!that.controls.prev && !!that.controls.next) {
+        that.setupPrevNextBtns();
+      }
+
+      //Events
+      if (that.autoplay_enabled) {
+        that.embla.on('init', () => {
+          setTimeout(() => {
+            that.autoPlayPlugin.play();
+          }, 7000);
+        });
+      }
+
+      if (!!that.fade_enabled) {
+        that.embla.on('init', () => {
+          that.embla.internalEngine().translate.toggleActive(false);
+          that.setSliderHeight();
+        });
+      }
+
+      if (!!that.nav) {
+        that.embla.on('select', () => {
+          that.selectDotBtn();
+        });
+        that.embla.on('init', () => {
+          that.selectDotBtn();
+        });
+      }
+
+      if (!!that.controls.prev && !!that.controls.next) {
+        that.embla.on('select', () => {
+          that.disablePrevNextBtns();
+        });
+        that.embla.on('init', () => {
+          that.disablePrevNextBtns();
+        });
+      }
+
+      if (!!that.for) {
+        that.embla.slideNodes().forEach((thumbNode, index) => {
+          thumbNode.addEventListener('click', () => {
+            that.onThumbClick(index);
+          });
+        });
+        that.embla.on('init', () => {
+          that.followMainCarousel(that.for.embla, that.embla);
+        });
+
+        (async () => {
+          while (!that.for || !that.for.embla) {
+            await new Promise((resolve) => setTimeout(resolve, 500));
+          }
+          that.for.embla.on('select', () => {
+            that.for.followMainCarousel(that.for.embla, that.embla);
+          });
+        })();
+      }
+      if (Shopify.designMode) {
+        that.listenForThemeEditorEvents();
+      }
+      window.addEventListener('resize', () => {
+        that.rebuild();
+      });
+      window.addEventListener('drawer:open', () => {
+        setTimeout(() => {
+          that.rebuild();
+        }, 100);
+      });
+      document.addEventListener('page:loaded', () => {
+        that.rebuild();
+      });
+    }
+
+    setSliderHeight() {
+      const that = this;
+      that.slides_wrapper.style.height = that.slides[0].offsetHeight + 'px';
+      that.slides.forEach((slide) => {
+        slide.style.position = 'absolute';
+        slide.style.transition = 'opacity ' + that.fade_speed + 'ms';
+      });
+    }
+
+    resetSliderHeight() {
+      const that = this;
+      that.slides_wrapper.style.height = '';
+      that.slides.forEach((slide) => {
+        slide.style.position = '';
+        slide.style.transition = '';
+      });
+    }
+
+    reInitDots() {
+      const that = this;
+      if (!!that.nav) {
+        that.removeDotBtns();
+
+        that.nav_array = that.generateDotBtns();
+        that.setupDotBtns();
+        that.embla.on('select', () => {
+          that.selectDotBtn();
+        });
+        that.selectDotBtn();
+      }
+    }
+
+    rebuild() {
+      const that = this;
+
+      if (!!that.fade_enabled) {
+        that.resetSliderHeight();
+      }
+      if (window.innerWidth > CleverSlider.breakpoints.medium) {
+        that.reInitDots();
+        that.embla.reInit(that.options_desktop);
+      } else if (
+        window.innerWidth <= CleverSlider.breakpoints.medium &&
+        window.innerWidth > CleverSlider.breakpoints.small
+      ) {
+        that.reInitDots();
+        that.embla.reInit(that.options_tablet);
+      } else if (window.innerWidth <= CleverSlider.breakpoints.small) {
+        that.reInitDots();
+        that.embla.reInit(that.options_mobile);
+      }
+      if (!!that.controls) {
+        that.disablePrevNextBtns();
+      }
+      if (!!that.fade_enabled) {
+        that.setSliderHeight();
+      }
+    }
+
+    setupPrevNextBtns() {
+      const that = this;
+      that.controls.prev.addEventListener('click', that.embla.scrollPrev, false);
+      that.controls.next.addEventListener('click', that.embla.scrollNext, false);
+    }
+
+    disablePrevNextBtns() {
+      const that = this;
+      if (that.embla.canScrollPrev()) {
+        that.controls.prev.removeAttribute('disabled');
+      } else {
+        that.controls.prev.setAttribute('disabled', '');
+      }
+      if (that.embla.canScrollNext()) {
+        that.controls.next.removeAttribute('disabled');
+      } else {
+        that.controls.next.setAttribute('disabled', '');
+      }
+    }
+
+    setupDotBtns() {
+      const that = this;
+      that.nav_array.forEach((dotNode, i) => {
+        dotNode.addEventListener('click', () => that.embla.scrollTo(i), false);
+      });
+    }
+
+    generateDotBtns() {
+      const that = this;
+      let template = document.getElementById('slider_nav_item_template').innerHTML;
+      that.nav.innerHTML = Array.from(that.slides).reduce((acc) => acc + template, '');
+      return [].slice.call(that.nav.querySelectorAll('.slider_nav_item'));
+    }
+
+    removeDotBtns() {
+      this.nav.innerHTML = '';
+    }
+
+    selectDotBtn() {
+      const that = this;
+      let previous = that.embla.previousScrollSnap();
+      let selected = that.embla.selectedScrollSnap();
+      that.nav_array[previous].classList.remove('in-view');
+      that.nav_array[selected].classList.add('in-view');
+    }
+
+    onThumbClick(index) {
+      const that = this;
+      if (!that.embla.clickAllowed()) return;
+      that.for.embla.scrollTo(index);
+    }
+
+    followMainCarousel(mainCarousel, thumbCarousel) {
+      thumbCarousel.scrollTo(mainCarousel.selectedScrollSnap());
+      this.selectThumbBtn(mainCarousel, thumbCarousel);
+    }
+
+    selectThumbBtn(mainCarousel, thumbCarousel) {
+      let previous = mainCarousel.previousScrollSnap();
+      let selected = mainCarousel.selectedScrollSnap();
+      thumbCarousel.slideNodes()[previous].classList.remove('in-view');
+      thumbCarousel.slideNodes()[selected].classList.add('in-view');
+    }
+
+    listenForPrevBtnClick() {
+      const that = this;
+      const scrollPrev = () => {
+        that.autoplayer.stop();
+        that.embla.scrollPrev();
+      };
+      that.controls.prev.addEventListener('click', scrollPrev, false);
+    }
+
+    listenForNextBtnClick() {
+      const that = this;
+      const scrollNext = () => {
+        that.autoplayer.stop();
+        that.embla.scrollNext();
+      };
+      that.controls.next.addEventListener('click', scrollNext, false);
+    }
+
+    listenForThemeEditorEvents() {
+      const that = this;
+      window.addEventListener('shopify:block:select', (e) => {
+        let block_id = e.detail.blockId;
+        let block_index = Array.from(that.slides).findIndex(
+          (slide) =>
+            slide.hasAttribute('data-shopify-editor-block') &&
+            JSON.parse(slide.getAttribute('data-shopify-editor-block')).id == block_id
+        );
+        if (block_index != -1) that.embla.scrollTo(Number(block_index));
+      });
+    }
+  }
+
+  customElements.define('embla-slider', CleverSlider);
+</script>

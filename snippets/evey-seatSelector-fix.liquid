@@ -1,0 +1,30 @@
+<script>
+  var zone = document.querySelector('.variant-wrapper.js');
+  //var atcBtn = document.querySelector('.btn.btn--full.add-to-cart.cowlendar-add-to-cart');
+  //console.log('atc', atcBtn);
+  var seatSelector = document.createElement("div");
+  seatSelector.setAttribute('data-evey-seat-options', '');
+  seatSelector.style.paddingTop = "13px"
+  zone.appendChild(seatSelector);
+
+  /*let counter = 1;
+  let checkEveySeat = setInterval(function(){
+    if(counter > 120){
+      atcBtn.removeAttribute("disabled")
+      console.log("Evey timedout, re-enabling add to cart button.")
+      clearInterval(checkEveySeat);
+    }    
+    if(seatSelector){
+      //atcBtn.removeAttribute("disabled")
+      console.log("Evey seat selector loaded, re-enabling add to cart button.")
+      clearInterval(checkEveySeat);
+    }else{
+      console.log('button should be disabled')
+      //atcBtn.setAttribute('disabled','disabled')
+    }
+    counter++
+  }, 500);
+  */
+
+
+</script>

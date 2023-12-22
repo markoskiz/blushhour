@@ -1,0 +1,89 @@
+{%- liquid
+  assign show_selectors = false
+  assign currency_selector = false
+  assign locale_selector = false
+
+  if section.settings.show_currency_selector and shop.enabled_currencies.size > 1
+    assign currency_selector = true
+  endif
+
+  if section.settings.show_locale_selector and shop.enabled_locales.size > 1
+    assign locale_selector = true
+  endif
+
+  if currency_selector or locale_selector
+    assign show_selectors = true
+  endif
+-%}
+
+<div class="toolbar{% if overlay_header%} toolbar--transparent{% endif %} small--hide">
+  <div class="{% unless section.settings.enable_full_width %}page-width{% endunless %}">
+    <div class="toolbar__content">
+      {%- if section.settings.toolbar_menu != blank -%}
+        <div class="toolbar__item toolbar__item--menu">
+          <ul class="inline-list toolbar__menu">
+          {%- for link in toolbar_menu.links -%}
+            {% assign background_color = "" %}
+            {% assign title_smallcase = link.title | downcase | strip %}
+            {% if section.settings.toolbar_option_background_colors_list contains title_smallcase %}
+              {% assign background_color_list = section.settings.toolbar_option_background_colors_list | split: ";;" %}
+              {% for menu_option in background_color_list %}
+                {% if menu_option contains title_smallcase %}
+                  {% assign background_color = menu_option | split: ":" | last %}
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+            <li{% if background_color != blank %} style="background-color: {{ background_color }}"{% endif %}>
+              <a href="{{ link.url }}">{{ link.title }}</a>
+            </li>
+          {%- endfor -%}
+          </ul>
+        </div>
+      {%- endif -%}
+
+      {% comment %}
+      {%- if section.settings.toolbar_social -%}
+        <div class="toolbar__item">
+          {% render 'social-icons', additional_classes: 'inline-list toolbar__social' %}
+        </div>
+      {%- endif -%}
+
+      {%- if show_selectors -%}
+        <div class="toolbar__item">
+          {%- render 'multi-selectors',
+            locale_selector: locale_selector,
+            currency_selector: currency_selector,
+            show_currency_flags: section.settings.show_currency_flags
+            location: 'toolbar'
+          -%}
+        </div>
+      {%- endif -%}
+      {% endcomment %}
+    </div>
+
+  </div>
+</div>
+
+<style>
+    ul.toolbar__menu {
+        display: flex;
+        justify-content: space-around;
+    }
+
+    .toolbar__menu li {
+        width: 100%;
+        text-align: center;
+    }
+
+    .toolbar__menu a {
+        padding: 20px 10px;
+        color: {{ section.settings.toolbar_font_color }};
+        text-transform: uppercase;
+        font-size: 20px;
+        font-weight: bold;
+        transition: all 0.2s ease-in-out;
+    }
+    .toolbar__menu a:hover {
+        transform: scale(1.25);
+    }
+</style>

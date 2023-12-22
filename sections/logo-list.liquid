@@ -1,0 +1,315 @@
+{%- style -%}
+.logo-bar--{{ section.id }} {
+  opacity: {{ section.settings.logo_opacity | divided_by: 100.0 }};
+}
+{%- endstyle -%}
+
+{%- if section.settings.divider -%}<div class="section--divider">{%- endif -%}
+
+<div class="page-width" data-aos="logo__animation">
+  {%- if section.settings.title != blank -%}
+    <div class="section-header">
+      <h2 class="section-header__title">{{ section.settings.title }}</h2>
+    </div>
+  {%- endif -%}
+
+  {%- if section.blocks.size > 0 -%}
+
+    {% if section.settings.use_slider_desktop or section.settings.use_slider_mobile %}
+      <div class="slider_wrapper">
+        <embla-slider class="{% unless section.settings.use_slider_desktop %}hide_desktop{% endunless %} {% unless section.settings.use_slider_mobile %}hide_mobile{% endunless %}" id="FeaturedLogosSlider-{{section.id}}" options-large="loop:true,align:start" options-medium="loop:true,align:start" options-small="loop:true,align:start">
+          <div class="slider_viewport">
+            <embla-track>
+              <embla-slides class="items-1 gap">
+                {%- for block in section.blocks -%}
+                  <embla-slide>
+                    <div class="logo-bar__item grid__item {{ column_width }}" {{ block.shopify_attributes }}>
+                      {%- if block.settings.link != blank -%}
+                      <a href="{{ block.settings.link }}" class="logo-bar__link">
+                        {%- endif -%}
+                        {%- if block.settings.image != blank -%}
+                          {%- assign img_url = block.settings.image | img_url: '1x1' | replace: '_1x1.', '_{width}x.' -%}
+                          <img class="logo-bar__image lazyload"
+                               data-src="{{ img_url }}"
+                               data-widths="[180, 360, 540, 720]"
+                               data-aspectratio="{{ block.settings.image.aspect_ratio }}"
+                               data-sizes="auto"
+                               alt="{{ block.settings.image.alt }}">
+                        {%- else -%}
+                          {{ 'logo' | placeholder_svg_tag: 'placeholder-svg' }}
+                        {%- endif -%}
+                        {%- if block.settings.link != blank -%}
+                      </a>
+                      {%- endif -%}
+                    </div>
+                  </embla-slide>
+                {% endfor %}
+              </embla-slides>
+            </embla-track>
+          </div>
+        </embla-slider>
+        <embla-prev for="FeaturedLogosSlider-{{section.id}}">
+        </embla-prev>
+        <embla-next for="FeaturedLogosSlider-{{section.id}}">
+        </embla-next>
+      </div>
+    {% endif %}
+
+    {% unless section.settings.use_slider_desktop and section.settings.use_slider_mobile %}
+      <div class="logo-bar logo-bar--{{ section.id }} grid {% if section.settings.use_slider_desktop %}hide_desktop{% endif %} {% if section.settings.use_slider_mobile %}hide_mobile{% endif %}">
+        {%- liquid
+          assign grid_item_width = 'medium-up--one-third'
+          case section.settings.columns_per_row
+            when 1
+              assign grid_item_width = 'medium-up--one-whole'
+            when 2
+              assign grid_item_width = 'medium-up--one-half'
+            when 3
+              assign grid_item_width = 'medium-up--one-third'
+            when 4
+              assign grid_item_width = 'medium-up--one-quarter'
+            when 5
+              assign grid_item_width = 'medium-up--one-fifth'
+          endcase
+          case section.settings.columns_per_row_mobile
+            when 1
+              assign grid_item_width = grid_item_width | append: ' small--one-whole'
+            when 2
+              assign grid_item_width = grid_item_width | append: ' small--one-half'
+            when 3
+              assign grid_item_width = grid_item_width | append: ' small--one-third'
+            when 4
+              assign grid_item_width = grid_item_width | append: ' small--one-quarter'
+            when 5
+              assign grid_item_width = grid_item_width | append: ' small--one-fifth'
+          endcase
+        -%}
+        {%- assign column_width = grid_item_width -%}
+        {%- for block in section.blocks -%}
+          <div class="logo-bar__item grid__item {{ column_width }}" {{ block.shopify_attributes }}>
+            {%- if block.settings.link != blank -%}
+              <a href="{{ block.settings.link }}" class="logo-bar__link">
+            {%- endif -%}
+            {%- if block.settings.image != blank -%}
+              {%- assign img_url = block.settings.image | img_url: '1x1' | replace: '_1x1.', '_{width}x.' -%}
+              <img class="logo-bar__image lazyload"
+                  data-src="{{ img_url }}"
+                  data-widths="[180, 360, 540, 720]"
+                  data-aspectratio="{{ block.settings.image.aspect_ratio }}"
+                  data-sizes="auto"
+                  alt="{{ block.settings.image.alt }}">
+            {%- else -%}
+              {{ 'logo' | placeholder_svg_tag: 'placeholder-svg' }}
+            {%- endif -%}
+            {%- if block.settings.link != blank -%}
+              </a>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    {% endunless %}
+
+  {%- endif -%}
+</div>
+
+{%- if section.settings.divider -%}</div>{%- endif -%}
+
+<style>
+    #shopify-section-{{section.id}} .logo-bar__item.grid__item {
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #shopify-section-{{section.id}} {
+        position: relative;
+    }
+
+    #shopify-section-{{section.id}} embla-slide {
+        flex: 0 0 calc((100% - {{section.settings.columns_per_row | minus: 1 | ceil }} * 50px) / {{section.settings.columns_per_row}});
+        margin-right: 50px;
+    }
+
+    #shopify-section-{{section.id}} embla-slide > .grid__item {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    #shopify-section-{{section.id}} .slider_wrapper {
+        position: relative;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        padding: 0 15px;
+    }
+
+    #shopify-section-{{section.id}} embla-prev {
+        left: 0;
+        transform: translate(-5px, -50%) rotate(-135deg);
+    }
+
+    #shopify-section-{{section.id}} embla-next {
+        right: 0;
+        transform: translate(5px, -50%) rotate(45deg);
+    }
+
+    #shopify-section-{{section.id}} embla-prev, #shopify-section-{{section.id}} embla-next {
+        /*top: calc(((100vw - (
+        {{section.settings.columns_per_row | minus: 1 | ceil }}  * 50px) - 110px) /
+        {{section.settings.columns_per_row}} ) / 1.68);*/
+        background-color: #EFCDC8;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #shopify-section-{{section.id}} embla-prev::before, #shopify-section-{{section.id}} embla-next::before {
+        content: '';
+        width: 10px;
+        height: 10px;
+        display: block;
+        border-top: 1px solid white;
+        border-right: 1px solid white;
+        margin: 0;
+        transform: translate(-10%, 10%);
+    }
+
+    @media screen and (min-width: 769px) {
+        #shopify-section-{{section.id}} .hide_desktop {
+            display: none;
+        }
+    }
+
+    {% if section.settings.use_slider_desktop == false and section.settings.use_slider_mobile %}
+    #shopify-section-{{section.id}} embla-prev, #shopify-section-{{section.id}} embla-next {
+        display: none;
+    }
+    {% endif %}
+
+    @media screen and (max-width: 768px) {
+        #shopify-section-{{section.id}} embla-prev, #shopify-section-{{section.id}} embla-next {
+        {% if section.settings.use_slider_desktop == false and section.settings.use_slider_mobile %} display: flex;
+        {% endif %} top: calc(((100vw - ({{section.settings.columns_per_row_mobile | minus: 1 | ceil }}* 30px) - 64px) /{{section.settings.columns_per_row_mobile}}) / 1.68);
+        }
+
+        #shopify-section-{{section.id}} .hide_mobile {
+            display: none;
+        }
+
+        #shopify-section-{{section.id}} embla-slide {
+            flex: 0 0 calc((100% - {{section.settings.columns_per_row_mobile | minus: 1 | ceil }}* 30px) / {{section.settings.columns_per_row_mobile}});
+            margin-right: 30px;
+        }
+
+    {% if section.settings.use_slider_desktop and section.settings.use_slider_mobile == false %}
+        #shopify-section-{{section.id}} embla-prev, #shopify-section-{{section.id}} embla-next {
+            display: none;
+        }
+    {% endif %}
+    }
+</style>
+
+{% schema %}
+{
+  "name": "t:sections.logo-list.name",
+  "class": "index-section",
+  "max_blocks": 10,
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "title",
+      "label": "t:sections.logo-list.settings.title.label"
+    },
+    {
+      "type": "range",
+      "id": "logo_opacity",
+      "label": "t:sections.logo-list.settings.logo_opacity.label",
+      "default": 76,
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "%"
+    },
+    {
+      "type": "checkbox",
+      "id": "divider",
+      "label": "t:sections.logo-list.settings.divider.label",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "columns_per_row",
+      "label": "Columns per row desktop?",
+      "default": 3,
+      "min": 1,
+      "max": 5,
+      "step": 1
+    },
+    {
+      "type": "range",
+      "id": "columns_per_row_mobile",
+      "label": "Columns per row mobile?",
+      "default": 1,
+      "min": 1,
+      "max": 5,
+      "step": 1
+    },
+    {
+      "type": "checkbox",
+      "id": "use_slider_desktop",
+      "label": "Use Slider Desktop",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "use_slider_mobile",
+      "label": "Use Slider Mobile",
+      "default": false
+    }
+  ],
+  "blocks": [
+    {
+      "type": "logo_image",
+      "name": "t:sections.logo-list.blocks.logo.name",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "t:sections.logo-list.blocks.logo.settings.image.label"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "t:sections.logo-list.blocks.logo.settings.link.label",
+          "info": "t:sections.logo-list.blocks.logo.settings.link.info"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.logo-list.presets.logo_list.name",
+      "blocks": [
+        {
+          "type": "logo_image"
+        },
+        {
+          "type": "logo_image"
+        },
+        {
+          "type": "logo_image"
+        },
+        {
+          "type": "logo_image"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

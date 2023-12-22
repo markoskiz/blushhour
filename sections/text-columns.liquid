@@ -1,0 +1,474 @@
+{%- if section.settings.divider -%}<div class="section--divider">{%- endif -%}
+
+<div class="page-width">
+  {%- if section.settings.title != blank -%}
+    <div class="section-header text-{{ section.settings.align_text }}">
+      <h2>{{ section.settings.title }}</h2>
+    </div>
+  {%- endif -%}
+
+  {% if section.settings.use_slider_desktop or section.settings.use_slider_mobile %}
+    <div class="slider_wrapper">
+      <embla-slider class="{% unless section.settings.use_slider_desktop %}hide_desktop{% endunless %} {% unless section.settings.use_slider_mobile %}hide_mobile{% endunless %}" id="FeaturedColumnsSlider-{{section.id}}" options-large="loop:true,align:start" options-medium="loop:true,align:start" options-small="loop:true,align:start">
+        <div class="slider_viewport">
+          <embla-track>
+            <embla-slides class="items-1 gap">
+              {%- for block in section.blocks -%}
+                <embla-slide>
+                  <div class="grid__item {{ column_width }} text-{{ section.settings.align_text }}" {{ block.shopify_attributes }} data-aos="row-of-3">
+                    <div style="background-color: {{ block.settings.background_color }}; padding-bottom: 10px;">
+                      {%- if block.settings.enable_image -%}
+                        <div style="{% if section.settings.align_text == 'center' %}margin: 0 auto;{% endif %} max-width: {{ block.settings.image_width }}px;">
+                          {%- if block.settings.button_link != blank -%}
+                          <a href="{{ block.settings.button_link }}">
+                            {%- endif -%}
+                            {%- if block.settings.image != blank -%}
+                              <div class="image-wrap text-spacing" style="height: 0; padding-bottom: {{ 100 | divided_by: block.settings.image.aspect_ratio }}%;">
+                                {%- assign img_url = block.settings.image | img_url: '1x1' | replace: '_1x1.', '_{width}x.' -%}
+                                <img class="lazyload"
+                                     data-src="{{ img_url }}"
+                                     data-widths="[180, 360, 540, 720, 900, 1080]"
+                                     data-aspectratio="{{ block.settings.image.aspect_ratio }}"
+                                     data-sizes="auto"
+                                     alt="{{ block.settings.image.alt }}">
+                              </div>
+                            {%- else -%}
+                              <div class="image-wrap text-spacing">{{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}</div>
+                            {%- endif -%}
+                            {%- if block.settings.button_link != blank -%}
+                          </a>
+                          {%- endif -%}
+                        </div>
+                      {%- endif -%}
+                      {%- if block.settings.title != blank -%}
+                        <h3 class="{{ block.settings.title_classes }}">{{ block.settings.title }}</h3>
+                      {%- endif -%}
+                      {%- if block.settings.text != blank -%}
+                        <div class="rte-setting text-spacing {{ block.settings.text_classes }}">{{ block.settings.text }}</div>
+                      {%- endif -%}
+                      {%- if block.settings.button_label != blank -%}
+                        <a href="{{ block.settings.button_link }}" class="btn btn--secondary btn--small">
+                          {{ block.settings.button_label }}
+                        </a>
+                      {%- endif -%}
+                    </div>
+                  </div>
+                </embla-slide>
+              {% endfor %}
+            </embla-slides>
+          </embla-track>
+        </div>
+      </embla-slider>
+      <embla-prev for="FeaturedColumnsSlider-{{section.id}}">
+      </embla-prev>
+      <embla-next for="FeaturedColumnsSlider-{{section.id}}">
+      </embla-next>
+    </div>
+  {% endif %}
+
+  {% unless section.settings.use_slider_desktop and section.settings.use_slider_mobile %}
+    <div class="grid{% unless section.blocks.size == 5 %} grid--uniform{% endunless %} grid--flush-bottom {% if section.settings.use_slider_desktop %}hide_desktop{% endif %} {% if section.settings.use_slider_mobile %}hide_mobile{% endif %}">
+      {%- liquid
+        assign grid_item_width = 'medium-up--one-third'
+        case section.settings.columns_per_row
+          when 1
+            assign grid_item_width = 'medium-up--one-whole'
+          when 2
+            assign grid_item_width = 'medium-up--one-half'
+          when 3
+            assign grid_item_width = 'medium-up--one-third'
+          when 4
+            assign grid_item_width = 'medium-up--one-quarter'
+          when 5
+            assign grid_item_width = 'medium-up--one-fifth'
+        endcase
+        case section.settings.columns_per_row_mobile
+          when 1
+            assign grid_item_width = grid_item_width | append: ' small--one-whole'
+          when 2
+            assign grid_item_width = grid_item_width | append: ' small--one-half'
+          when 3
+            assign grid_item_width = grid_item_width | append: ' small--one-third'
+          when 4
+            assign grid_item_width = grid_item_width | append: ' small--one-quarter'
+          when 5
+            assign grid_item_width = grid_item_width | append: ' small--one-fifth'
+        endcase
+      -%}
+      {%- for block in section.blocks -%}
+        {%- assign column_width = grid_item_width -%}
+        <div class="grid__item {{ column_width }} text-{{ section.settings.align_text }}" {{ block.shopify_attributes }} data-aos="row-of-3">
+          <div style="background-color: {{ block.settings.background_color }}; padding-bottom: 10px;">
+            {%- if block.settings.enable_image -%}
+              <div style="{% if section.settings.align_text == 'center' %}margin: 0 auto;{% endif %} max-width: {{ block.settings.image_width }}px;">
+                {%- if block.settings.button_link != blank -%}
+                  <a href="{{ block.settings.button_link }}">
+                {%- endif -%}
+                {%- if block.settings.image != blank -%}
+                  <div class="image-wrap text-spacing" style="height: 0; padding-bottom: {{ 100 | divided_by: block.settings.image.aspect_ratio }}%;">
+                    {%- assign img_url = block.settings.image | img_url: '1x1' | replace: '_1x1.', '_{width}x.' -%}
+                    <img class="lazyload"
+                        data-src="{{ img_url }}"
+                        data-widths="[180, 360, 540, 720, 900, 1080]"
+                        data-aspectratio="{{ block.settings.image.aspect_ratio }}"
+                        data-sizes="auto"
+                        alt="{{ block.settings.image.alt }}">
+                  </div>
+                {%- else -%}
+                  <div class="image-wrap text-spacing">{{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}</div>
+                {%- endif -%}
+                {%- if block.settings.button_link != blank -%}
+                  </a>
+                {%- endif -%}
+              </div>
+            {%- endif -%}
+            {%- if block.settings.title != blank -%}
+              <h3 class="{{ block.settings.title_classes }}">{{ block.settings.title }}</h3>
+            {%- endif -%}
+            {%- if block.settings.text != blank -%}
+              <div class="rte-setting text-spacing {{ block.settings.text_classes }}">{{ block.settings.text }}</div>
+            {%- endif -%}
+            {%- if block.settings.button_label != blank -%}
+              <a href="{{ block.settings.button_link }}" class="btn btn--secondary btn--small">
+                {{ block.settings.button_label }}
+              </a>
+            {%- endif -%}
+          </div>
+        </div>
+      {%- endfor -%}
+    </div>
+  {% endunless %}
+</div>
+{%- if section.settings.divider -%}</div>{%- endif -%}
+
+<style>
+    #shopify-section-{{ section.id }} {
+      {% if section.settings.text_bg_image %}
+      background-image: url("{{ section.settings.text_bg_image | image_url }}");
+      {% endif %}
+      {% if section.settings.text_bg_image == blank and section.settings.background_color %}
+      background-color: {{ section.settings.background_color }};
+      {% endif %}
+    }
+
+    #shopify-section-{{ section.id }} .btn {
+        border-width: {{ section.settings.button_border_width }}px;
+        background-color: {{ section.settings.button_background_color }};
+        border-color: {{ section.settings.button_border_color }};
+        color: {{ section.settings.button_font_color }};
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    #shopify-section-{{ section.id }} .btn:hover {
+        border-width: {{ section.settings.button_border_width_hover }}px;
+        background-color: {{ section.settings.button_background_color_hover }};
+        border-color: {{ section.settings.button_border_color_hover }};
+        color: {{ section.settings.button_font_color_hover }};
+    }
+
+    #shopify-section-{{section.id}} {
+        position: relative;
+    }
+
+    #shopify-section-{{section.id}} embla-slide {
+        flex: 0 0 calc((100% - {{section.settings.columns_per_row | minus: 1 | ceil }} * 50px) / {{section.settings.columns_per_row}});
+        margin-right: 50px;
+    }
+
+    #shopify-section-{{section.id}} embla-slide > .grid__item {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    #shopify-section-{{section.id}} .slider_wrapper {
+        position: relative;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        padding: 0 15px;
+    }
+
+    #shopify-section-{{section.id}} embla-prev {
+        left: 0;
+        transform: translate(-5px, -50%) rotate(-135deg);
+    }
+
+    #shopify-section-{{section.id}} embla-next {
+        right: 0;
+        transform: translate(5px, -50%) rotate(45deg);
+    }
+
+    #shopify-section-{{section.id}} embla-prev, #shopify-section-{{section.id}} embla-next {
+        /*top: calc(((100vw - (
+        {{section.settings.columns_per_row | minus: 1 | ceil }}  * 50px) - 110px) /
+        {{section.settings.columns_per_row}} ) / 1.68);*/
+        background-color: #636363;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #shopify-section-{{section.id}} embla-prev::before, #shopify-section-{{section.id}} embla-next::before {
+        content: '';
+        width: 10px;
+        height: 10px;
+        display: block;
+        border-top: 1px solid white;
+        border-right: 1px solid white;
+        margin: 0;
+        transform: translate(-10%, 10%);
+    }
+
+    @media screen and (min-width: 769px) {
+        #shopify-section-{{section.id}} .hide_desktop {
+            display: none;
+        }
+    }
+
+    {% if section.settings.use_slider_desktop == false and section.settings.use_slider_mobile %}
+    #shopify-section-{{section.id}} embla-prev, #shopify-section-{{section.id}} embla-next {
+        display: none;
+    }
+    {% endif %}
+
+    @media screen and (max-width: 768px) {
+        #shopify-section-{{section.id}} embla-prev, #shopify-section-{{section.id}} embla-next {
+        {% if section.settings.use_slider_desktop == false and section.settings.use_slider_mobile %} display: flex;
+        {% endif %} top: calc(((100vw - ({{section.settings.columns_per_row_mobile | minus: 1 | ceil }}* 30px) - 64px) /{{section.settings.columns_per_row_mobile}}) / 1.68);
+        }
+
+        #shopify-section-{{section.id}} .hide_mobile {
+            display: none;
+        }
+
+        #shopify-section-{{section.id}} embla-slide {
+            flex: 0 0 calc((100% - {{section.settings.columns_per_row_mobile | minus: 1 | ceil }}* 30px) / {{section.settings.columns_per_row_mobile}});
+            margin-right: 30px;
+        }
+
+        {% if section.settings.use_slider_desktop and section.settings.use_slider_mobile == false %}
+        #shopify-section-{{section.id}} embla-prev, #shopify-section-{{section.id}} embla-next {
+            display: none;
+        }
+        {% endif %}
+    }
+</style>
+
+{% schema %}
+{
+  "name": "t:sections.text-columns.name",
+  "class": "index-section",
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "title",
+      "label": "t:sections.text-columns.settings.title.label"
+    },
+    {
+      "type": "select",
+      "id": "align_text",
+      "label": "t:sections.text-columns.settings.align_text.label",
+      "default": "center",
+      "options": [
+        {
+          "value": "left",
+          "label": "t:sections.text-columns.settings.align_text.options.left.label"
+        },
+        {
+          "value": "center",
+          "label": "t:sections.text-columns.settings.align_text.options.center.label"
+        },
+        {
+          "value": "right",
+          "label": "t:sections.text-columns.settings.align_text.options.right.label"
+        }
+      ]
+    },
+    {
+      "type": "image_picker",
+      "id": "text_bg_image",
+      "label": "Text Background Image"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Text Background Color"
+    },
+    {
+      "type": "checkbox",
+      "id": "divider",
+      "label": "t:sections.text-columns.settings.divider.label",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "button_border_width",
+      "label": "Button Border Width",
+      "default": 2,
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "type": "color",
+      "id": "button_background_color",
+      "label": "Button Background Color"
+    },
+    {
+      "type": "color",
+      "id": "button_border_color",
+      "label": "Button Border Color"
+    },
+    {
+      "type": "color",
+      "id": "button_font_color",
+      "label": "Button Font Color"
+    },
+    {
+      "type": "range",
+      "id": "button_border_width_hover",
+      "label": "Button Border Width Hover",
+      "default": 2,
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "type": "color",
+      "id": "button_background_color_hover",
+      "label": "Button Background Color Hover"
+    },
+    {
+      "type": "color",
+      "id": "button_border_color_hover",
+      "label": "Button Border Color Hover"
+    },
+    {
+      "type": "color",
+      "id": "button_font_color_hover",
+      "label": "Button Font Color Hover"
+    },
+    {
+      "type": "range",
+      "id": "columns_per_row",
+      "label": "Columns per row desktop?",
+      "default": 3,
+      "min": 1,
+      "max": 5,
+      "step": 1
+    },
+    {
+      "type": "range",
+      "id": "columns_per_row_mobile",
+      "label": "Columns per row mobile?",
+      "default": 1,
+      "min": 1,
+      "max": 5,
+      "step": 1
+    },
+    {
+      "type": "checkbox",
+      "id": "use_slider_desktop",
+      "label": "Use Slider Desktop",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "use_slider_mobile",
+      "label": "Use Slider Mobile",
+      "default": false
+    }
+  ],
+  "blocks": [
+    {
+      "type": "text_block",
+      "name": "t:sections.text-columns.blocks.column.name",
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "enable_image",
+          "label": "t:sections.text-columns.blocks.column.settings.enable_image.label",
+          "default": true
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "t:sections.text-columns.blocks.column.settings.image.label"
+        },
+        {
+          "type": "range",
+          "id": "image_width",
+          "label": "t:sections.text-columns.blocks.column.settings.image_width.label",
+          "default": 650,
+          "min": 60,
+          "max": 650,
+          "step": 10,
+          "unit": "px"
+        },
+        {
+          "type": "liquid",
+          "id": "title",
+          "label": "t:sections.text-columns.blocks.column.settings.title.label",
+          "default": "Example title"
+        },
+        {
+          "type": "text",
+          "id": "title_classes",
+          "label": "Classes to add to title element"
+        },
+        {
+          "type": "liquid",
+          "id": "text",
+          "label": "t:sections.text-columns.blocks.column.settings.text.label",
+          "default": "<p>Use this section to explain a set of product features, to link to a series of pages, or to answer common questions about your products. Add images for emphasis.</p>"
+        },
+        {
+          "type": "text",
+          "id": "text_classes",
+          "label": "Classes to add to text element"
+        },
+        {
+          "type": "text",
+          "id": "button_label",
+          "label": "t:sections.text-columns.blocks.column.settings.button_label.label",
+          "default": "Optional button"
+        },
+        {
+          "type": "url",
+          "id": "button_link",
+          "label": "t:sections.text-columns.blocks.column.settings.button_link.label"
+        },
+        {
+          "type": "color",
+          "id": "background_color",
+          "label": "Block Background Color"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.text-columns.presets.text_columns_with_images.name",
+      "blocks": [
+        {
+          "type": "text_block"
+        },
+        {
+          "type": "text_block"
+        },
+        {
+          "type": "text_block"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

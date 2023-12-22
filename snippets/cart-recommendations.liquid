@@ -1,0 +1,108 @@
+<div data-recommendations>
+  {%- liquid
+    assign cart_recommended_products = settings.cart_recommendations.products
+    assign cart_item_handles = cart.items | map: 'product' | map: 'handle'
+    assign cart_recommended_products_not_in_cart = null | sort
+    for product in cart_recommended_products
+      if cart_item_handles contains product.handle
+        continue
+      endif
+      assign inserter = product | sort
+      assign cart_recommended_products_not_in_cart = cart_recommended_products_not_in_cart | concat: inserter
+    endfor
+    assign cart_recommended_products_count = cart_recommended_products_not_in_cart | size
+  -%}
+
+  {% if cart_recommended_products_count > 0 or request.design_mode %}
+    <div class="cart__recommendations-wrapper appear-animation appear-delay-1">
+      <p class="cart__recommendations-title heading-font">
+        {{ 'cart.general.recommendations' | t }}
+      </p>
+      <div class="cart__recommendations-inner">
+        <embla-prev for="CartDrawerRecommendationsSlider">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            xmlns:serif="http://www.serif.com/"
+            width="100%"
+            height="100%"
+            viewBox="0 0 89 89"
+            version="1.1"
+            xml:space="preserve"
+            style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"
+          >
+            <g transform="matrix(1,0,0,1,-2763.71,-38349.9)">
+                <g transform="matrix(4.16667,0,0,4.16667,0,34668.8)">
+                    <g transform="matrix(1,0,0,1,671.78,894.125)">
+                        <path d="M0,-0.011L3.509,-3.506L4.036,-2.977L1.048,-0.001L4.041,3.094L3.504,3.613L0,-0.011ZM12.787,-0.006C12.787,-5.881 8.023,-10.644 2.148,-10.644C-3.727,-10.644 -8.49,-5.881 -8.49,-0.006C-8.49,5.869 -3.727,10.633 2.148,10.633C8.023,10.633 12.787,5.869 12.787,-0.006" style="fill:rgb(99,99,99);fill-rule:nonzero;"/>
+                    </g>
+                </g>
+            </g>
+          </svg>
+        </embla-prev>
+        <embla-slider id="CartDrawerRecommendationsSlider" options-large="loop:true,align:start,containScroll:trimSnaps">
+          <embla-track>
+            <embla-slides class="items-3 gap">
+              {% if cart_recommended_products_count > 0 %}
+                {% for product in cart_recommended_products_not_in_cart %}
+                  {% if cart_item_handles contains product.handle %}
+                    {% continue %}
+                  {% endif %}
+                  <embla-slide class="cart__recommendations-item">
+                    <script type="application/json" class="bold-product-json">{{ product | json }}</script>
+                    {% render 'product-grid-item', product: product %}
+                  </embla-slide>
+                {% endfor %}
+              {% else %}
+                {%- for i in (1..6) -%}
+                  <embla-slide class="cart__recommendations-item">
+                    <div
+                      class="grid__item grid-product {{ grid_item_width }}"
+                      data-aos="row-of-{{ per_row }}"
+                    >
+                      <div class="grid-product__content">
+                        <a href="{{ product.url | within: collection }}" class="grid-product__link">
+                          <div class="grid-product__image-mask">
+                            {%- capture current -%}{% cycle 1, 2, 3, 4, 5, 6 %}{%- endcapture -%}
+                            <div class="image-wrap">
+                              {{ 'product-' | append: current | placeholder_svg_tag: 'placeholder-svg' }}
+                            </div>
+                          </div>
+                          <div class="grid-product__meta">
+                            <div class="grid-product__title">{{ 'home_page.onboarding.product_title' | t }}</div>
+                            <div class="grid-product__price">$29</div>
+                          </div>
+                        </a>
+                      </div>
+                    </div>
+                  </embla-slide>
+                {%- endfor -%}
+              {% endif %}
+            </embla-slides>
+          </embla-track>
+        </embla-slider>
+        <embla-next for="CartDrawerRecommendationsSlider">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            xmlns:serif="http://www.serif.com/"
+            width="100%"
+            height="100%"
+            viewBox="0 0 89 89"
+            version="1.1"
+            xml:space="preserve"
+            style="transform:rotate(180deg);fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"
+          >
+            <g transform="matrix(1,0,0,1,-2763.71,-38349.9)">
+                <g transform="matrix(4.16667,0,0,4.16667,0,34668.8)">
+                    <g transform="matrix(1,0,0,1,671.78,894.125)">
+                        <path d="M0,-0.011L3.509,-3.506L4.036,-2.977L1.048,-0.001L4.041,3.094L3.504,3.613L0,-0.011ZM12.787,-0.006C12.787,-5.881 8.023,-10.644 2.148,-10.644C-3.727,-10.644 -8.49,-5.881 -8.49,-0.006C-8.49,5.869 -3.727,10.633 2.148,10.633C8.023,10.633 12.787,5.869 12.787,-0.006" style="fill:rgb(99,99,99);fill-rule:nonzero;"/>
+                    </g>
+                </g>
+            </g>
+          </svg>
+        </embla-next>
+      </div>
+    </div>
+  {% endif %}
+</div>
